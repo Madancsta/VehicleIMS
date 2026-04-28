@@ -1,5 +1,7 @@
 using System;
+
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VehicleIMS.Domain.Entities
 {
@@ -19,5 +21,6 @@ namespace VehicleIMS.Domain.Entities
         [Required]
         [ForeignKey(nameof(Sales))]
         public int SalesId { get; set; }
+        public Sales Sales { get; set; } = null!;
     }
 }

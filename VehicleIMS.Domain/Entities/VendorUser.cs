@@ -15,7 +15,7 @@ namespace VehicleIMS.Domain.Entities
 
         [Key]
         [Required]
-        public int UserId { get; set; }
+        public Guid UserId { get; set; }
 
         [ForeignKey(nameof(UserId))]
         public Users User { get; set; }

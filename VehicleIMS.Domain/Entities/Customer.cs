@@ -9,9 +9,11 @@ namespace VehicleIMS.Domain.Entities;
 public class Customer
 {
     [Key]
+    public int CustomerId { get; set; }
+
     [Required]
     [ForeignKey(nameof(Users))]
-    public int CustomerId { get; set; }
+    public Guid UserId { get; set; }
     public Users User { get; set; } = null!;
     [Required]
     [StringLength(100)]

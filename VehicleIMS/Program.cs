@@ -1,16 +1,17 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using VehicleIMS.Domain.Entities;
+using VehicleIMS.Infrastructure;
 using VehicleIMS.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Register infrastructure (DbContext + Identity)
+builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
@@ -21,9 +22,21 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication(); // Add this! Important for Identity
 app.UseAuthorization();
-
 app.MapControllers();
+
+// Seed database
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    // Optional: Apply migrations or ensure database is created
+    var dbContext = services.GetRequiredService<AppDbContext>();
+    await dbContext.Database.EnsureCreatedAsync(); // or .MigrateAsync()
+
+    // Seed admin user
+    await DBSeeder.SeedAdminAsync(services);
+}
 
 app.Run();

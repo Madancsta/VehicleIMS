@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace VehicleIMS.Domain.Enums;
-public class PaymentStatus
+public enum PaymentStatus
 {
+    Pending,
+    Completed,
+    Failed
 }
