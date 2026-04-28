@@ -1,10 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace VehicleIMS.Domain.Entities
 {
-    internal class PartCategory
+    public class PartCategory
     {
+        [Key]
+        public int PartCategoryId { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string CategoryName { get; set; } = string.Empty;
     }
 }
