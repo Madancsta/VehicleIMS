@@ -36,7 +36,7 @@ using (var scope = app.Services.CreateScope())
     await dbContext.Database.EnsureCreatedAsync(); // or .MigrateAsync()
 
     // Seed admin user
-    await DBSeeder.SeedAdminAsync(services);
+    await DBSeeder.SeedAsync(services);
 }
 
 app.Run();
