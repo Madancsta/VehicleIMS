@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using VehicleIMS.Domain.Enums;
-using System.Text;
 
 namespace VehicleIMS.Domain.Entities;
 
@@ -19,10 +16,14 @@ public class Booking
     public TimeSpan BookingTime { get; set; }
 
     [Required]
-    public BookingStatus BookingStatus { get; set; }
+    public BookingStatus BookingStatus { get; set; } = BookingStatus.Pending;
+
+    [Required]
+    public string ServiceDescription { get; set; } = string.Empty;
 
     [Required]
     [ForeignKey(nameof(Vehicle))]
     public int VehicleId { get; set; }
 
+    public Vehicle Vehicle { get; set; } = null!;
 }

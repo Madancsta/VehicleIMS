@@ -18,8 +18,9 @@ public class AppDbContext : IdentityDbContext<Users, Role, Guid>
         public DbSet<Vehicle> Vehicles => Set<Vehicle>();
         public DbSet<Customer> Customers => Set<Customer>();
         public DbSet<Booking> Bookings => Set<Booking>();
-        public DbSet<Part> Parts => Set<Part>();
-        public DbSet<Purchase> Purchases => Set<Purchase>();
+    public DbSet<Part> Parts => Set<Part>();
+    public DbSet<PartCategory> PartCategories => Set<PartCategory>();
+    public DbSet<Purchase> Purchases => Set<Purchase>();
         public DbSet<PurchaseVendorPart> PurchaseVendorParts => Set<PurchaseVendorPart>();
         public DbSet<Vendor> Vendors => Set<Vendor>();
         public DbSet<VendorPart> VendorParts => Set<VendorPart>();
