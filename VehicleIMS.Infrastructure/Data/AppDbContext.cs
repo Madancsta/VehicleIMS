@@ -33,7 +33,30 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<VendorPart>()
             .HasKey(vp => new { vp.VendorId, vp.PartId });
 
+        // VendorUser composite key
         modelBuilder.Entity<VendorUser>()
             .HasKey(vu => new { vu.VendorId, vu.UserId });
+
+        // Request to Booking relationship
+        modelBuilder.Entity<Request>()
+            .HasOne(r => r.Booking)
+            .WithMany()
+            .HasForeignKey(r => r.BookingId);
+
+        // RequestPart composite key
+        modelBuilder.Entity<RequestPart>()
+            .HasKey(rp => new { rp.RequestId, rp.PartId });
+
+        // RequestPart relationships
+        modelBuilder.Entity<RequestPart>()
+            .HasOne(rp => rp.Request)
+            .WithMany(r => r.RequestParts)
+            .HasForeignKey(rp => rp.RequestId);
+
+        // RequestPart to Part relationship
+        modelBuilder.Entity<RequestPart>()
+            .HasOne(rp => rp.Part)
+            .WithMany()
+            .HasForeignKey(rp => rp.PartId);
     }
 }
