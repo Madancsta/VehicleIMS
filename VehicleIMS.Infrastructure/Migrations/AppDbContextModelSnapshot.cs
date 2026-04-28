@@ -271,6 +271,53 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.ToTable("PurchaseVendorParts");
                 });
 
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.Request", b =>
+                {
+                    b.Property<int>("RequestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("RequestId"));
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RequestStatusId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("RequestedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("RequestId");
+
+                    b.HasIndex("BookingId");
+
+                    b.ToTable("Requests");
+                });
+
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.RequestPart", b =>
+                {
+                    b.Property<int>("RequestId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PartId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RequestDescription")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("RequestQuantity")
+                        .HasColumnType("integer");
+
+                    b.HasKey("RequestId", "PartId");
+
+                    b.HasIndex("PartId");
+
+                    b.ToTable("RequestPart");
+                });
+
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Review", b =>
                 {
                     b.Property<int>("ReviewId")
@@ -290,7 +337,13 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Property<DateTime>("ReviewDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("SalesId")
+                        .HasColumnType("integer");
+
                     b.HasKey("ReviewId");
+
+                    b.HasIndex("SalesId")
+                        .IsUnique();
 
                     b.ToTable("Reviews");
                 });
@@ -342,9 +395,6 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Property<int>("PaymentStatusId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("ReviewId")
-                        .HasColumnType("integer");
-
                     b.Property<decimal>("SalesAmount")
                         .HasColumnType("decimal(18,2)");
 
@@ -354,8 +404,6 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.HasKey("SalesId");
 
                     b.HasIndex("BookingId");
-
-                    b.HasIndex("ReviewId");
 
                     b.ToTable("Sales");
                 });
@@ -633,6 +681,47 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Navigation("Vendor");
                 });
 
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.Request", b =>
+                {
+                    b.HasOne("VehicleIMS.Domain.Entities.Booking", "Booking")
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+                });
+
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.RequestPart", b =>
+                {
+                    b.HasOne("VehicleIMS.Domain.Entities.Part", "Part")
+                        .WithMany()
+                        .HasForeignKey("PartId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VehicleIMS.Domain.Entities.Request", "Request")
+                        .WithMany("RequestParts")
+                        .HasForeignKey("RequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Part");
+
+                    b.Navigation("Request");
+                });
+
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.Review", b =>
+                {
+                    b.HasOne("VehicleIMS.Domain.Entities.Sales", "Sales")
+                        .WithOne("Review")
+                        .HasForeignKey("VehicleIMS.Domain.Entities.Review", "SalesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Sales");
+                });
+
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Sales", b =>
                 {
                     b.HasOne("VehicleIMS.Domain.Entities.Booking", "Booking")
@@ -641,15 +730,7 @@ namespace VehicleIMS.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VehicleIMS.Domain.Entities.Review", "Review")
-                        .WithMany()
-                        .HasForeignKey("ReviewId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Booking");
-
-                    b.Navigation("Review");
                 });
 
             modelBuilder.Entity("VehicleIMS.Domain.Entities.VendorPart", b =>
@@ -688,6 +769,17 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Navigation("User");
 
                     b.Navigation("Vendor");
+                });
+
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.Request", b =>
+                {
+                    b.Navigation("RequestParts");
+                });
+
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.Sales", b =>
+                {
+                    b.Navigation("Review")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }
