@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using VehicleIMS.Application.Interfaces;
+using VehicleIMS.Application.Services;
 using VehicleIMS.Domain.Entities;
 using VehicleIMS.Infrastructure.Data;
 
@@ -17,6 +19,11 @@ public static class DependencyInjection
         services.AddIdentityCore<Users>()
             .AddRoles<Role>()
             .AddEntityFrameworkStores<AppDbContext>();
+
+        // Staff Service
+       services.AddScoped<IStaffService, StaffService>();
+        // Customer History Service
+       services.AddScoped<ICustomerHistoryService, CustomerHistoryService>();
 
         return services;
     }
