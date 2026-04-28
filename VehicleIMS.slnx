@@ -1,3 +1,6 @@
 <Solution>
+  <Project Path="VehicleIMS.Application/VehicleIMS.Application.csproj" />
+  <Project Path="VehicleIMS.Domain/VehicleIMS.Domain.csproj" />
+  <Project Path="VehicleIMS.Infrastructure/VehicleIMS.Infrastructure.csproj" />
   <Project Path="VehicleIMS/VehicleIMS.csproj" />
 </Solution>
