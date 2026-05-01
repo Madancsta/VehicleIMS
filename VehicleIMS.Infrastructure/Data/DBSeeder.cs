@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using VehicleIMS.Domain.Entities;
 using VehicleIMS.Domain.Enums;
-using VehicleIMS.Infrastructure.Data;
 
 public static class DBSeeder
 {
@@ -34,22 +33,28 @@ public static class DBSeeder
         }
     }
 
-        // Create admin user if not exists
-        var adminEmail = "admin@vehicleims.com"; // Consistent email
-        var adminUser = await userManager.FindByEmailAsync(adminEmail);
+    private static async Task SeedUserAsync(
+        UserManager<Users> userManager,
+        string username,
+        string email,
+        string password,
+        string role)
+    {
+        var user = await userManager.FindByEmailAsync(email);
 
-        if (adminUser == null)
+        if (user != null) return;
+
+        var newUser = new Users
         {
-            var admin = new Users
-            {
-                Id = Guid.NewGuid(),
-                UserName = "admin",
-                Email = adminEmail, // Use the same email
-                PhoneNumber = "1234567890",
-                Address = "123 Main St",
-                CreatedAt = DateTime.UtcNow,
-                Status = UserStatus.Active
-            };
+            Id = Guid.NewGuid(),
+            UserName = username,
+            Email = email,
+            PhoneNumber = "9800000000",
+            Address = "Kathmandu",
+            CreatedAt = DateTime.UtcNow,
+            Status = UserStatus.Active,
+            EmailConfirmed = true
+        };
 
         var result = await userManager.CreateAsync(newUser, password);
 
@@ -61,6 +66,4 @@ public static class DBSeeder
 
         await userManager.AddToRoleAsync(newUser, role);
     }
-
-    
 }
