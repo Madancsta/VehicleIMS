@@ -1,77 +1,38 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using VehicleIMS.Application.DTOs;
-using VehicleIMS.Domain.Entities;
-using VehicleIMS.Infrastructure.Data;
+using VehicleIMS.Application.Interfaces;
 
-namespace VehicleIMS.Controllers
+namespace VehicleIMS.Controllers;
+
+[Route("api/requests")]
+[ApiController]
+public class RequestController : ControllerBase
 {
-    [ApiController]
-    [Route("api/requests")]
-    public class RequestController : ControllerBase
+    private readonly IRequestService _requestService;
+
+    public RequestController(IRequestService requestService)
     {
-        private readonly AppDbContext _context;
+        _requestService = requestService;
+    }
 
-        public RequestController(AppDbContext context)
+    [HttpPost]
+    public async Task<IActionResult> CreatePartRequest(PartRequestDTO dto)
+    {
+        try
         {
-            _context = context;
+            var result = await _requestService.CreatePartRequestAsync(dto);
+            return Ok(result);
         }
-
-        [HttpPost]
-        public async Task<IActionResult> CreatePartRequest(PartRequestDTO dto)
+        catch (Exception ex)
         {
-            var bookingExists = await _context.Bookings.AnyAsync(b => b.BookingId == dto.BookingId);
-
-            if (!bookingExists)
-            {
-                return NotFound("Booking not found.");
-            }
-
-            var partExists = await _context.Parts.AnyAsync(p => p.PartId == dto.PartId);
-
-            if (!partExists)
-            {
-                return NotFound("Part not found.");
-            }
-
-            var request = new Request
-            {
-                BookingId = dto.BookingId,
-                RequestStatusId = 1,
-                RequestedDate = DateTime.UtcNow
-            };
-
-            _context.Requests.Add(request);
-            await _context.SaveChangesAsync();
-
-            var requestPart = new RequestPart
-            {
-                RequestId = request.RequestId,
-                PartId = dto.PartId,
-                RequestQuantity = dto.RequestQuantity,
-                RequestDescription = dto.RequestDescription
-            };
-
-            _context.RequestParts.Add(requestPart);
-            await _context.SaveChangesAsync();
-
-            return Ok(new
-            {
-                Message = "Part request submitted successfully.",
-                request.RequestId
-            });
+            return BadRequest(ex.Message);
         }
+    }
 
-        [HttpGet("booking/{bookingId}")]
-        public async Task<IActionResult> GetRequestsByBooking(int bookingId)
-        {
-            var requests = await _context.Requests
-                .Include(r => r.RequestParts)
-                .ThenInclude(rp => rp.Part)
-                .Where(r => r.BookingId == bookingId)
-                .ToListAsync();
-
-            return Ok(requests);
-        }
+    [HttpGet("booking/{bookingId}")]
+    public async Task<IActionResult> GetRequestsByBooking(int bookingId)
+    {
+        var requests = await _requestService.GetRequestsByBookingAsync(bookingId);
+        return Ok(requests);
     }
 }

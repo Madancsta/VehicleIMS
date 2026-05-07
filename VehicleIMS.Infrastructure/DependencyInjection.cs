@@ -1,14 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using VehicleIMS.Domain.Entities;
-using VehicleIMS.Infrastructure.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using VehicleIMS.Application.Interfaces;
 using VehicleIMS.Application.Services;
-using Microsoft.AspNetCore.Identity;
-using System.Text;
+using VehicleIMS.Domain.Entities;
+using VehicleIMS.Infrastructure.Data;
+using VehicleIMS.Infrastructure.Repositories;
 
 namespace VehicleIMS.Infrastructure;
 
@@ -53,7 +54,15 @@ public static class DependencyInjection
 
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
+        services.AddScoped<IBookingRepository, BookingRepository>();
+        services.AddScoped<IRequestRepository, RequestRepository>();
+        services.AddScoped<IReviewRepository, ReviewRepository>();
 
+        services.AddScoped<ICustomerService, CustomerService>();
+        services.AddScoped<IBookingService, BookingService>();
+        services.AddScoped<IRequestService, RequestService>();
+        services.AddScoped<IReviewService, ReviewService>();
         services.AddAuthorization(options =>
         {
             options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));

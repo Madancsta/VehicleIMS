@@ -1,58 +1,38 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using VehicleIMS.Application.DTOs;
-using VehicleIMS.Domain.Entities;
-using VehicleIMS.Domain.Enums;
-using VehicleIMS.Infrastructure.Data;
+using VehicleIMS.Application.Interfaces;
 
-namespace VehicleIMS.Controllers
+namespace VehicleIMS.Controllers;
+
+[Route("api/bookings")]
+[ApiController]
+public class BookingController : ControllerBase
 {
-    [ApiController]
-    [Route("api/bookings")]
-    public class BookingController : ControllerBase
+    private readonly IBookingService _bookingService;
+
+    public BookingController(IBookingService bookingService)
     {
-        private readonly AppDbContext _context;
+        _bookingService = bookingService;
+    }
 
-        public BookingController(AppDbContext context)
+    [HttpPost]
+    public async Task<IActionResult> CreateBooking(BookingDTO dto)
+    {
+        try
         {
-            _context = context;
+            var result = await _bookingService.CreateBookingAsync(dto);
+            return Ok(result);
         }
-
-        [HttpPost]
-        public async Task<IActionResult> CreateBooking(BookingDTO dto)
+        catch (Exception ex)
         {
-            var vehicleExists = await _context.Vehicles.AnyAsync(v => v.VehicleId == dto.VehicleId);
-
-            if (!vehicleExists)
-            {
-                return NotFound("Vehicle not found.");
-            }
-
-            var booking = new Booking
-            {
-                VehicleId = dto.VehicleId,
-                BookingDate = dto.BookingDate,
-                BookingTime = dto.BookingTime,
-                ServiceDescription = dto.ServiceDescription,
-                BookingStatus = BookingStatus.Pending
-            };
-
-            _context.Bookings.Add(booking);
-            await _context.SaveChangesAsync();
-
-            return Ok(booking);
+            return BadRequest(ex.Message);
         }
+    }
 
-        [HttpGet("customer/{customerId}")]
-        public async Task<IActionResult> GetCustomerBookings(int customerId)
-        {
-            var bookings = await _context.Bookings
-                .Include(b => b.Vehicle)
-                .Where(b => b.Vehicle.CustomerId == customerId)
-                .OrderByDescending(b => b.BookingDate)
-                .ToListAsync();
-
-            return Ok(bookings);
-        }
+    [HttpGet("customer/{customerId}")]
+    public async Task<IActionResult> GetCustomerBookings(int customerId)
+    {
+        var bookings = await _bookingService.GetCustomerBookingsAsync(customerId);
+        return Ok(bookings);
     }
 }
