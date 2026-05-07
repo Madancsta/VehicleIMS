@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using VehicleIMS.Application.Interfaces;
 using VehicleIMS.Domain.Entities;
 using VehicleIMS.Infrastructure.Data;
@@ -17,15 +14,10 @@ namespace VehicleIMS.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<bool> CustomerExistsAsync(int customerId)
-        {
-            return await _context.Customers.AnyAsync(c => c.CustomerId == customerId);
-        }
-
-        public async Task<bool> VehicleBelongsToCustomerAsync(int vehicleId, int customerId)
+        public async Task<bool> VehicleExistsAsync(int vehicleId)
         {
             return await _context.Vehicles
-                .AnyAsync(v => v.VehicleId == vehicleId && v.CustomerId == customerId);
+                .AnyAsync(v => v.VehicleId == vehicleId);
         }
 
         public async Task AddBookingAsync(Booking booking)
@@ -33,10 +25,10 @@ namespace VehicleIMS.Infrastructure.Repositories
             await _context.Bookings.AddAsync(booking);
         }
 
-        public async Task<List<Booking>> GetBookingsByCustomerIdAsync(int customerId)
+        public async Task<List<Booking>> GetBookingsByVehicleIdAsync(int vehicleId)
         {
             return await _context.Bookings
-                .Where(b => b.CustomerId == customerId)
+                .Where(b => b.VehicleId == vehicleId)
                 .OrderByDescending(b => b.BookingDate)
                 .ToListAsync();
         }

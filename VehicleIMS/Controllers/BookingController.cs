@@ -2,37 +2,39 @@
 using VehicleIMS.Application.DTOs;
 using VehicleIMS.Application.Interfaces;
 
-namespace VehicleIMS.Controllers;
-
-[Route("api/bookings")]
-[ApiController]
-public class BookingController : ControllerBase
+namespace VehicleIMS.Controllers
 {
-    private readonly IBookingService _bookingService;
 
-    public BookingController(IBookingService bookingService)
+    [Route("api/bookings")]
+    [ApiController]
+    public class BookingController : ControllerBase
     {
-        _bookingService = bookingService;
-    }
+        private readonly IBookingService _bookingService;
 
-    [HttpPost]
-    public async Task<IActionResult> CreateBooking(BookingDTO dto)
-    {
-        try
+        public BookingController(IBookingService bookingService)
         {
-            var result = await _bookingService.CreateBookingAsync(dto);
-            return Ok(result);
+            _bookingService = bookingService;
         }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
 
-    [HttpGet("customer/{customerId}")]
-    public async Task<IActionResult> GetCustomerBookings(int customerId)
-    {
-        var bookings = await _bookingService.GetCustomerBookingsAsync(customerId);
-        return Ok(bookings);
+        [HttpPost]
+        public async Task<IActionResult> CreateBooking(BookingDTO dto)
+        {
+            try
+            {
+                var result = await _bookingService.CreateBookingAsync(dto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("vehicle/{vehicleId}")]
+        public async Task<IActionResult> GetVehicleBookings(int vehicleId)
+        {
+            var bookings = await _bookingService.GetVehicleBookingsAsync(vehicleId);
+            return Ok(bookings);
+        }
     }
 }

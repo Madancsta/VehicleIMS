@@ -2,65 +2,57 @@
 using VehicleIMS.Application.Interfaces;
 using VehicleIMS.Domain.Entities;
 
-namespace VehicleIMS.Application.Services;
-
-public class BookingService : IBookingService
+namespace VehicleIMS.Application.Services
 {
-    private readonly IBookingRepository _bookingRepository;
-
-    public BookingService(IBookingRepository bookingRepository)
+    public class BookingService : IBookingService
     {
-        _bookingRepository = bookingRepository;
-    }
+        private readonly IBookingRepository _bookingRepository;
 
-    public async Task<object> CreateBookingAsync(BookingDTO dto)
-    {
-        var customerExists = await _bookingRepository.CustomerExistsAsync(dto.CustomerId);
-
-        if (!customerExists)
+        public BookingService(IBookingRepository bookingRepository)
         {
-            throw new Exception("Customer not found.");
+            _bookingRepository = bookingRepository;
         }
 
-        var vehicleExists = await _bookingRepository.VehicleBelongsToCustomerAsync(dto.VehicleId, dto.CustomerId);
-
-        if (!vehicleExists)
+        public async Task<object> CreateBookingAsync(BookingDTO dto)
         {
-            throw new Exception("Vehicle not found for this customer.");
+            var vehicleExists = await _bookingRepository.VehicleExistsAsync(dto.VehicleId);
+
+            if (!vehicleExists)
+            {
+                throw new Exception("Vehicle not found.");
+            }
+
+            var booking = new Booking
+            {
+                VehicleId = dto.VehicleId,
+                BookingDate = dto.BookingDate,
+                BookingTime = dto.BookingTime,
+                ServiceDescription = dto.ServiceDescription
+            };
+
+            await _bookingRepository.AddBookingAsync(booking);
+            await _bookingRepository.SaveChangesAsync();
+
+            return new
+            {
+                Message = "Booking created successfully.",
+                booking.BookingId
+            };
         }
 
-        var booking = new Booking
+        public async Task<List<object>> GetVehicleBookingsAsync(int vehicleId)
         {
-            CustomerId = dto.CustomerId,
-            VehicleId = dto.VehicleId,
-            BookingDate = dto.BookingDate,
-            BookingTime = dto.BookingTime,
-            ServiceDescription = dto.ServiceDescription
-        };
+            var bookings = await _bookingRepository.GetBookingsByVehicleIdAsync(vehicleId);
 
-        await _bookingRepository.AddBookingAsync(booking);
-        await _bookingRepository.SaveChangesAsync();
-
-        return new
-        {
-            Message = "Booking created successfully.",
-            booking.BookingId
-        };
-    }
-
-    public async Task<List<object>> GetCustomerBookingsAsync(int customerId)
-    {
-        var bookings = await _bookingRepository.GetBookingsByCustomerIdAsync(customerId);
-
-        return bookings.Select(b => new
-        {
-            b.BookingId,
-            b.CustomerId,
-            b.VehicleId,
-            b.BookingDate,
-            b.BookingTime,
-            b.ServiceDescription,
-            b.BookingStatus
-        }).Cast<object>().ToList();
+            return bookings.Select(b => new
+            {
+                b.BookingId,
+                b.VehicleId,
+                b.BookingDate,
+                b.BookingTime,
+                b.ServiceDescription,
+                b.BookingStatus
+            }).Cast<object>().ToList();
+        }
     }
 }

@@ -2,64 +2,56 @@
 using VehicleIMS.Application.Interfaces;
 using VehicleIMS.Domain.Entities;
 
-namespace VehicleIMS.Application.Services;
-
-public class ReviewService : IReviewService
+namespace VehicleIMS.Application.Services
 {
-    private readonly IReviewRepository _reviewRepository;
-
-    public ReviewService(IReviewRepository reviewRepository)
+    public class ReviewService : IReviewService
     {
-        _reviewRepository = reviewRepository;
-    }
+        private readonly IReviewRepository _reviewRepository;
 
-    public async Task<object> CreateReviewAsync(ReviewDTO dto)
-    {
-        var saleExists = await _reviewRepository.SaleExistsAsync(dto.SalesId);
-
-        if (!saleExists)
+        public ReviewService(IReviewRepository reviewRepository)
         {
-            throw new Exception("Sales record not found.");
+            _reviewRepository = reviewRepository;
         }
 
-        var customerExists = await _reviewRepository.CustomerExistsAsync(dto.CustomerId);
-
-        if (!customerExists)
+        public async Task<object> CreateReviewAsync(ReviewDTO dto)
         {
-            throw new Exception("Customer not found.");
+            var saleExists = await _reviewRepository.SaleExistsAsync(dto.SalesId);
+
+            if (!saleExists)
+            {
+                throw new Exception("Sales record not found.");
+            }
+
+            var review = new Review
+            {
+                SalesId = dto.SalesId,
+                Rating = dto.Rating,
+                ReviewComment = dto.ReviewComment,
+                ReviewDate = DateTime.UtcNow
+            };
+
+            await _reviewRepository.AddReviewAsync(review);
+            await _reviewRepository.SaveChangesAsync();
+
+            return new
+            {
+                Message = "Review submitted successfully.",
+                review.ReviewId
+            };
         }
 
-        var review = new Review
+        public async Task<List<object>> GetReviewsBySalesIdAsync(int salesId)
         {
-            SalesId = dto.SalesId,
-            CustomerId = dto.CustomerId,
-            Rating = dto.Rating,
-            ReviewComment = dto.ReviewComment,
-            ReviewDate = DateTime.UtcNow
-        };
+            var reviews = await _reviewRepository.GetReviewsBySalesIdAsync(salesId);
 
-        await _reviewRepository.AddReviewAsync(review);
-        await _reviewRepository.SaveChangesAsync();
-
-        return new
-        {
-            Message = "Review submitted successfully.",
-            review.ReviewId
-        };
-    }
-
-    public async Task<List<object>> GetCustomerReviewsAsync(int customerId)
-    {
-        var reviews = await _reviewRepository.GetReviewsByCustomerIdAsync(customerId);
-
-        return reviews.Select(r => new
-        {
-            r.ReviewId,
-            r.CustomerId,
-            r.SalesId,
-            r.Rating,
-            r.ReviewComment,
-            r.ReviewDate
-        }).Cast<object>().ToList();
+            return reviews.Select(r => new
+            {
+                r.ReviewId,
+                r.SalesId,
+                r.Rating,
+                r.ReviewComment,
+                r.ReviewDate
+            }).Cast<object>().ToList();
+        }
     }
 }

@@ -2,37 +2,39 @@
 using VehicleIMS.Application.DTOs;
 using VehicleIMS.Application.Interfaces;
 
-namespace VehicleIMS.Controllers;
-
-[Route("api/reviews")]
-[ApiController]
-public class ReviewController : ControllerBase
+namespace VehicleIMS.Controllers
 {
-    private readonly IReviewService _reviewService;
 
-    public ReviewController(IReviewService reviewService)
+    [Route("api/reviews")]
+    [ApiController]
+    public class ReviewController : ControllerBase
     {
-        _reviewService = reviewService;
-    }
+        private readonly IReviewService _reviewService;
 
-    [HttpPost]
-    public async Task<IActionResult> CreateReview(ReviewDTO dto)
-    {
-        try
+        public ReviewController(IReviewService reviewService)
         {
-            var result = await _reviewService.CreateReviewAsync(dto);
-            return Ok(result);
+            _reviewService = reviewService;
         }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
 
-    [HttpGet("customer/{customerId}")]
-    public async Task<IActionResult> GetCustomerReviews(int customerId)
-    {
-        var reviews = await _reviewService.GetCustomerReviewsAsync(customerId);
-        return Ok(reviews);
+        [HttpPost]
+        public async Task<IActionResult> CreateReview(ReviewDTO dto)
+        {
+            try
+            {
+                var result = await _reviewService.CreateReviewAsync(dto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("sales/{salesId}")]
+        public async Task<IActionResult> GetReviewsBySales(int salesId)
+        {
+            var reviews = await _reviewService.GetReviewsBySalesIdAsync(salesId);
+            return Ok(reviews);
+        }
     }
 }
