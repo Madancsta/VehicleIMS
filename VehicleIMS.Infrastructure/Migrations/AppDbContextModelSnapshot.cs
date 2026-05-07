@@ -167,6 +167,14 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Property<float>("CreditBalance")
                         .HasColumnType("real");
 
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("LoyaltyPoints")
                         .HasColumnType("integer");
 
@@ -266,6 +274,12 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Property<int>("PurchaseVendorPartId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
                     b.HasKey("PurchaseId", "PartId", "VendorId");
 
                     b.HasIndex("PartId");
@@ -319,7 +333,7 @@ namespace VehicleIMS.Infrastructure.Migrations
 
                     b.HasIndex("PartId");
 
-                    b.ToTable("RequestPart");
+                    b.ToTable("RequestParts");
                 });
 
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Review", b =>
@@ -694,7 +708,7 @@ namespace VehicleIMS.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("VehicleIMS.Domain.Entities.Purchase", "Purchase")
-                        .WithMany()
+                        .WithMany("PurchaseVendorParts")
                         .HasForeignKey("PurchaseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -816,6 +830,11 @@ namespace VehicleIMS.Infrastructure.Migrations
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Customer", b =>
                 {
                     b.Navigation("Vehicles");
+                });
+
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.Purchase", b =>
+                {
+                    b.Navigation("PurchaseVendorParts");
                 });
 
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Request", b =>
