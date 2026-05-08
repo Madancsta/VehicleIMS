@@ -18,6 +18,6 @@ namespace VehicleIMS.Application.Interfaces
 
         Task<bool> DeactivateStaffAsync(int userId);
 
-        Task<bool> ChangeRoleAsync(int userId, Roles role);
+        Task<bool> ChangeRoleAsync(int userId, Role role);
     }
 }
