@@ -1,12 +1,13 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using VehicleIMS.Application.DTOs;
-using VehicleIMS.Domain.Enums;
 using VehicleIMS.Application.Interfaces;
 using VehicleIMS.Domain.Entities;
-using Microsoft.AspNetCore.Authentication;
+using VehicleIMS.Domain.Enums;
 
 namespace VehicleIMS.Application.Services
 {
@@ -176,58 +177,94 @@ namespace VehicleIMS.Application.Services
 
         public async Task<AuthResponseDTO> RefreshTokenAsync(string accessToken, string refreshToken)
         {
-            var principal = _jwtService.GetPrincipalFromExpiredToken(accessToken);
-            if (principal == null)
+            // Clean the tokens
+            accessToken = accessToken?.Trim().Trim('"') ?? string.Empty;
+            refreshToken = refreshToken?.Trim().Trim('"') ?? string.Empty;
+
+            // Validate formats
+            if (string.IsNullOrWhiteSpace(accessToken))
             {
                 return new AuthResponseDTO
                 {
                     Success = false,
-                    Message = "Invalid access token"
+                    Message = "Access token is required"
                 };
             }
 
-            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            // Check JWT format (should have 3 segments)
+            var tokenSegments = accessToken.Split('.');
+            if (tokenSegments.Length != 3)
             {
                 return new AuthResponseDTO
                 {
                     Success = false,
-                    Message = "Invalid token claims"
+                    Message = $"Invalid access token format. Expected 3 segments, got {tokenSegments.Length}. Make sure you're sending the JWT access token."
                 };
             }
 
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            try
+            {
+                var principal = _jwtService.GetPrincipalFromExpiredToken(accessToken);
+                if (principal == null)
+                {
+                    return new AuthResponseDTO
+                    {
+                        Success = false,
+                        Message = "Invalid access token"
+                    };
+                }
+
+                var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return new AuthResponseDTO
+                    {
+                        Success = false,
+                        Message = "Invalid token claims"
+                    };
+                }
+
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+                {
+                    return new AuthResponseDTO
+                    {
+                        Success = false,
+                        Message = "Invalid refresh token"
+                    };
+                }
+
+                var roles = await _userManager.GetRolesAsync(user);
+                var newAccessToken = _jwtService.GenerateAccessToken(user, roles);
+                var newRefreshToken = _jwtService.GenerateRefreshToken();
+
+                user.RefreshToken = newRefreshToken;
+                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(
+                    Convert.ToDouble(_configuration["JWT:RefreshTokenValidityInDays"] ?? "7"));
+                await _userManager.UpdateAsync(user);
+
+                return new AuthResponseDTO
+                {
+                    Success = true,
+                    Message = "Token refreshed successfully!",
+                    Token = newAccessToken,
+                    RefreshToken = newRefreshToken,
+                    Expiration = DateTime.UtcNow.AddMinutes(
+                        Convert.ToDouble(_configuration["JWT:TokenValidityInMinutes"] ?? "60")),
+                    UserId = user.Id.ToString(),
+                    Email = user.Email,
+                    UserName = user.UserName,
+                    Roles = roles.ToList()
+                };
+            }
+            catch (SecurityTokenException ex)
             {
                 return new AuthResponseDTO
                 {
                     Success = false,
-                    Message = "Invalid refresh token"
+                    Message = $"Token validation failed: {ex.Message}"
                 };
             }
-
-            var roles = await _userManager.GetRolesAsync(user);
-            var newAccessToken = _jwtService.GenerateAccessToken(user, roles);
-            var newRefreshToken = _jwtService.GenerateRefreshToken();
-
-            user.RefreshToken = newRefreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(
-                Convert.ToDouble(_configuration["JWT:RefreshTokenValidityInDays"] ?? "7"));
-            await _userManager.UpdateAsync(user);
-
-            return new AuthResponseDTO
-            {
-                Success = true,
-                Message = "Token refreshed successfully!",
-                Token = newAccessToken,
-                RefreshToken = newRefreshToken,
-                Expiration = DateTime.UtcNow.AddMinutes(
-                    Convert.ToDouble(_configuration["JWT:TokenValidityInMinutes"] ?? "60")),
-                UserId = user.Id.ToString(),
-                Email = user.Email,
-                UserName = user.UserName,
-                Roles = roles.ToList()
-            };
         }
 
         public async Task<AuthResponseDTO> LogoutAsync(string userId)
