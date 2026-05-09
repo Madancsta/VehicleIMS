@@ -79,24 +79,10 @@ public class CustomerService : ICustomerService
         await _customerRepository.AddCustomerAsync(customer);
         await _customerRepository.SaveChangesAsync();
 
-        var vehicle = new Vehicle
-        {
-            CustomerId = customer.CustomerId,
-            VehicleNumber = dto.VehicleNumber,
-            Brand = dto.Brand,
-            Model = dto.Model,
-            Color = dto.Color,
-            Year = dto.Year
-        };
-
-        await _customerRepository.AddVehicleAsync(vehicle);
-        await _customerRepository.SaveChangesAsync();
-
         return new
         {
             Message = "Customer registered successfully.",
-            customer.CustomerId,
-            vehicle.VehicleId
+            customer.CustomerId
         };
     }
 
