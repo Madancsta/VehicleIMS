@@ -27,6 +27,7 @@ namespace VehicleIMS.Application.Services
                 VehicleId = dto.VehicleId,
                 BookingDate = dto.BookingDate,
                 BookingTime = dto.BookingTime,
+                ServiceType = dto.ServiceType,
                 ServiceDescription = dto.ServiceDescription
             };
 
@@ -50,6 +51,7 @@ namespace VehicleIMS.Application.Services
                 b.VehicleId,
                 b.BookingDate,
                 b.BookingTime,
+                b.ServiceType,
                 b.ServiceDescription,
                 b.BookingStatus
             }).Cast<object>().ToList();

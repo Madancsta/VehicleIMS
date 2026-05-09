@@ -9,6 +9,7 @@ namespace VehicleIMS.Application.DTOs
         public int VehicleId { get; set; }
         public DateTime BookingDate { get; set; }
         public TimeSpan BookingTime { get; set; }
+        public string ServiceType { get; set; } = string.Empty;
         public string ServiceDescription { get; set; } = string.Empty;
     }
 }

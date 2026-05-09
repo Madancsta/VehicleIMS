@@ -146,6 +146,11 @@ namespace VehicleIMS.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("ServiceType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<int>("VehicleId")
                         .HasColumnType("integer");
 
@@ -235,7 +240,7 @@ namespace VehicleIMS.Infrastructure.Migrations
 
                     b.HasKey("PartCategoryId");
 
-                    b.ToTable("PartCategory");
+                    b.ToTable("PartCategories");
                 });
 
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Purchase", b =>
