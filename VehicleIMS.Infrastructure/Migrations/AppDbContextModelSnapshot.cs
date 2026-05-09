@@ -142,10 +142,16 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Property<TimeSpan>("BookingTime")
                         .HasColumnType("interval");
 
+                    b.Property<string>("ServiceDescription")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("VehicleId")
                         .HasColumnType("integer");
 
                     b.HasKey("BookingId");
+
+                    b.HasIndex("VehicleId");
 
                     b.ToTable("Bookings");
                 });
@@ -161,10 +167,8 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Property<float>("CreditBalance")
                         .HasColumnType("real");
 
-                    b.Property<string>("LoyaltyPoints")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                    b.Property<int>("LoyaltyPoints")
+                        .HasColumnType("integer");
 
                     b.Property<float>("TotalSpent")
                         .HasColumnType("real");
@@ -435,6 +439,14 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
 
@@ -457,6 +469,12 @@ namespace VehicleIMS.Infrastructure.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("RefreshTokenExpiryTime")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
@@ -514,6 +532,8 @@ namespace VehicleIMS.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("VehicleId");
+
+                    b.HasIndex("CustomerId");
 
                     b.ToTable("Vehicles");
                 });
@@ -632,6 +652,17 @@ namespace VehicleIMS.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.Booking", b =>
+                {
+                    b.HasOne("VehicleIMS.Domain.Entities.Vehicle", "Vehicle")
+                        .WithMany()
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Vehicle");
+                });
+
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Customer", b =>
                 {
                     b.HasOne("VehicleIMS.Domain.Entities.Users", "User")
@@ -733,6 +764,17 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Navigation("Booking");
                 });
 
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.Vehicle", b =>
+                {
+                    b.HasOne("VehicleIMS.Domain.Entities.Customer", "Customer")
+                        .WithMany("Vehicles")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
             modelBuilder.Entity("VehicleIMS.Domain.Entities.VendorPart", b =>
                 {
                     b.HasOne("VehicleIMS.Domain.Entities.Part", "Part")
@@ -769,6 +811,11 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Navigation("User");
 
                     b.Navigation("Vendor");
+                });
+
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.Customer", b =>
+                {
+                    b.Navigation("Vehicles");
                 });
 
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Request", b =>

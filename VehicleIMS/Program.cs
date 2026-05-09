@@ -5,6 +5,8 @@ using VehicleIMS.Application.Services;
 using VehicleIMS.Domain.Entities;
 using VehicleIMS.Infrastructure;
 using VehicleIMS.Infrastructure.Data;
+using VehicleIMS.Infrastructure.Middleware;
+using VehicleIMS.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,16 +14,25 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 // Register infrastructure (DbContext + Identity)
 builder.Services.AddInfrastructure(builder.Configuration);
+//builder.Services.AddScoped<IPartRepository, PartRepository>();
+//builder.Services.AddScoped<IPartService, PartService>();
+
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExceptionHandler>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
@@ -39,7 +50,7 @@ using (var scope = app.Services.CreateScope())
     await dbContext.Database.EnsureCreatedAsync(); // or .MigrateAsync()
 
     // Seed admin user
-    await DBSeeder.SeedAdminAsync(services);
+    await DBSeeder.SeedAsync(services);
 }
 
 app.Run();
