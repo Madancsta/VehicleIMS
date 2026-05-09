@@ -1,14 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using VehicleIMS.Domain.Entities;
-using VehicleIMS.Infrastructure.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using VehicleIMS.Application.Interfaces;
 using VehicleIMS.Application.Services;
-using Microsoft.AspNetCore.Identity;
-using System.Text;
+using VehicleIMS.Domain.Entities;
+using VehicleIMS.Infrastructure.Data;
+using VehicleIMS.Infrastructure.Repository;
 
 namespace VehicleIMS.Infrastructure;
 
@@ -54,6 +55,16 @@ public static class DependencyInjection
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
 
+        // Staff Service
+        services.AddScoped<IStaffService, StaffService>();
+
+        // Customer History Service
+        services.AddScoped<ICustomerHistoryService, CustomerHistoryService>();
+
+        // Customer History Repository
+        services.AddScoped<ICustomerHistoryRepository, CustomerHistoryRepository>();
+
+
         services.AddAuthorization(options =>
         {
             options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
@@ -63,4 +74,4 @@ public static class DependencyInjection
 
         return services;
     }
-}y
+}

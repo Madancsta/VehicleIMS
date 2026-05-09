@@ -10,11 +10,11 @@ namespace VehicleIMS.Application.Services
     public class StaffService : IStaffService
     {
         private readonly UserManager<Users> _userManager;
-        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
+        private readonly RoleManager<Role> _roleManager;
 
         public StaffService(
             UserManager<Users> userManager,
-            RoleManager<IdentityRole<Guid>> roleManager)
+            RoleManager<Role> roleManager)          
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -86,7 +86,7 @@ namespace VehicleIMS.Application.Services
 
             if (!roleExists)
             {
-                await _roleManager.CreateAsync(new IdentityRole<Guid>(createStaffDTO.Role));
+                await _roleManager.CreateAsync(new Role { Name = createStaffDTO.Role });
             }
 
             var user = new Users
@@ -213,7 +213,7 @@ namespace VehicleIMS.Application.Services
 
             if (!roleExists)
             {
-                await _roleManager.CreateAsync(new IdentityRole<Guid>(changeUserRoleDTO.Role));
+                await _roleManager.CreateAsync(new Role { Name = changeUserRoleDTO.Role });
             }
 
             var currentRoles = await _userManager.GetRolesAsync(user);

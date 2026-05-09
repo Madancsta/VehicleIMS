@@ -227,7 +227,7 @@ namespace VehicleIMS.Infrastructure.Migrations
 
                     b.HasKey("PartCategoryId");
 
-                    b.ToTable("PartCategory");
+                    b.ToTable("PartCategories");
                 });
 
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Purchase", b =>
@@ -265,6 +265,12 @@ namespace VehicleIMS.Infrastructure.Migrations
 
                     b.Property<int>("PurchaseVendorPartId")
                         .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("PurchaseId", "PartId", "VendorId");
 
@@ -694,7 +700,7 @@ namespace VehicleIMS.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("VehicleIMS.Domain.Entities.Purchase", "Purchase")
-                        .WithMany()
+                        .WithMany("PurchaseVendorParts")
                         .HasForeignKey("PurchaseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -816,6 +822,11 @@ namespace VehicleIMS.Infrastructure.Migrations
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Customer", b =>
                 {
                     b.Navigation("Vehicles");
+                });
+
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.Purchase", b =>
+                {
+                    b.Navigation("PurchaseVendorParts");
                 });
 
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Request", b =>
