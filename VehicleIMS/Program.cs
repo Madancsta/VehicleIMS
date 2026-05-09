@@ -3,6 +3,17 @@ using VehicleIMS.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -26,7 +37,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
+app.UseCors("Frontend");
 app.UseAuthentication(); // Add this! Important for Identity
 app.UseAuthorization();
 app.MapControllers();
