@@ -1,5 +1,7 @@
 using VehicleIMS.Infrastructure;
 using VehicleIMS.Infrastructure.Data;
+using VehicleIMS.Infrastructure.Middleware;
+using VehicleIMS.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,11 +25,13 @@ builder.Services.AddSwaggerGen();
 
 // Register infrastructure (DbContext + Identity)
 builder.Services.AddInfrastructure(builder.Configuration);
-// builder.Services.AddScoped<IPartRepository, PartRepository>();
-// builder.Services.AddScoped<IPartService, PartService>();
+builder.Services.AddScoped<IPartRepository, PartRepository>();
+builder.Services.AddScoped<IPartService, PartService>();
 
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExceptionHandler>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

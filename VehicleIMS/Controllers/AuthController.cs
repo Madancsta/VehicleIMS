@@ -47,7 +47,7 @@ namespace VehicleMS.Controllers
 
             if (!result.Success)
             {
-                return Unauthorized(result);
+                throw new UnauthorizedAccessException(result.Message);
             }
 
             return Ok(result);
@@ -56,6 +56,33 @@ namespace VehicleMS.Controllers
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto refreshTokenDto)
         {
+            // Add debugging
+            Console.WriteLine($"=== Refresh Token Request ===");
+            Console.WriteLine($"AccessToken received: {(string.IsNullOrEmpty(refreshTokenDto.AccessToken) ? "NULL or EMPTY" : $"Length: {refreshTokenDto.AccessToken.Length}, Preview: {refreshTokenDto.AccessToken.Substring(0, Math.Min(50, refreshTokenDto.AccessToken.Length))}")}");
+            Console.WriteLine($"RefreshToken received: {(string.IsNullOrEmpty(refreshTokenDto.RefreshToken) ? "NULL or EMPTY" : $"Length: {refreshTokenDto.RefreshToken.Length}")}");
+
+            // Validate input
+            if (string.IsNullOrWhiteSpace(refreshTokenDto.AccessToken))
+            {
+                return BadRequest(new { success = false, message = "Access token is required" });
+            }
+
+            if (string.IsNullOrWhiteSpace(refreshTokenDto.RefreshToken))
+            {
+                return BadRequest(new { success = false, message = "Refresh token is required" });
+            }
+
+            // Check if access token has 3 segments
+            var segments = refreshTokenDto.AccessToken.Trim().Split('.');
+            if (segments.Length != 3)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = $"Invalid access token format. Expected 3 segments, got {segments.Length}. Please ensure you're sending the JWT access token, not the refresh token."
+                });
+            }
+
             var result = await _authService.RefreshTokenAsync(refreshTokenDto.AccessToken, refreshTokenDto.RefreshToken);
 
             if (!result.Success)
@@ -108,11 +135,5 @@ namespace VehicleMS.Controllers
                 Roles = User.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value)
             });
         }
-    }
-
-    public class RefreshTokenDto
-    {
-        public string AccessToken { get; set; } = string.Empty;
-        public string RefreshToken { get; set; } = string.Empty;
     }
 }
