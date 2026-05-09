@@ -8,13 +8,13 @@ public class PartService(IPartRepository partRepository) : IPartService
 {
     public async Task<IEnumerable<PartResponseDto>> GetAllPartsAsync()
     {
-        var parts = await partRepository.FindAllAsync(trackChanges: false);
+        var parts = await partRepository.GetAllWithCategoryAsync();
         return parts.Select(MapToResponse);
     }
 
     public async Task<PartResponseDto?> GetPartByIdAsync(int id)
     {
-        var part = await partRepository.GetByIdAsync(id);
+        var part = await partRepository.GetByIdWithCategoryAsync(id);
         return part is null ? null : MapToResponse(part);
     }
 
@@ -25,7 +25,7 @@ public class PartService(IPartRepository partRepository) : IPartService
             PartName = dto.PartName,
             PartCategoryId = dto.PartCategoryId,
             PartPrice = dto.PartPrice,
-            StockQuantity = dto.StockQuantity
+            StockQuantity = 0
         };
 
         partRepository.Create(part);
@@ -41,7 +41,7 @@ public class PartService(IPartRepository partRepository) : IPartService
         part.PartName = dto.PartName;
         part.PartCategoryId = dto.PartCategoryId;
         part.PartPrice = dto.PartPrice;
-        part.StockQuantity = dto.StockQuantity;
+   
 
         partRepository.Update(part);
         await partRepository.SaveChangesAsync();
