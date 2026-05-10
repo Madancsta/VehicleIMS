@@ -11,6 +11,8 @@
         public string? Email { get; set; }
         public string? UserName { get; set; }
         public List<string>? Roles { get; set; }
+
+        public int? CustomerId { get; set; }
     }
 
     public class RefreshTokenDto

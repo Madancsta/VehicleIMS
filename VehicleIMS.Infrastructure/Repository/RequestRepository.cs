@@ -46,6 +46,18 @@ namespace VehicleIMS.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<Request>> GetRequestsByCustomerIdAsync(int customerId)
+        {
+            return await _context.Requests
+                .Include(r => r.Booking)
+                    .ThenInclude(b => b.Vehicle)
+                .Include(r => r.RequestParts)
+                    .ThenInclude(rp => rp.Part)
+                .Where(r => r.Booking.Vehicle.CustomerId == customerId)
+                .OrderByDescending(r => r.RequestedDate)
+                .ToListAsync();
+        }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();

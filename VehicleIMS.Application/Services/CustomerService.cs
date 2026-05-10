@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using VehicleIMS.Application.DTOs;
 using VehicleIMS.Application.Interfaces;
 using VehicleIMS.Domain.Entities;
@@ -10,18 +11,24 @@ public class CustomerService : ICustomerService
     private readonly ICustomerRepository _customerRepository;
     private readonly UserManager<Users> _userManager;
     private readonly RoleManager<Role> _roleManager;
+    private readonly IJwtService _jwtService;
+    private readonly IConfiguration _configuration;
 
     public CustomerService(
         ICustomerRepository customerRepository,
         UserManager<Users> userManager,
-        RoleManager<Role> roleManager)
+        RoleManager<Role> roleManager,
+        IJwtService jwtService,
+        IConfiguration configuration)
     {
         _customerRepository = customerRepository;
         _userManager = userManager;
         _roleManager = roleManager;
+        _jwtService = jwtService;
+        _configuration = configuration;
     }
 
-    public async Task<object> RegisterAsync(CustomerRegisterDTO dto)
+    public async Task<AuthResponseDTO> RegisterAsync(CustomerRegisterDTO dto)
     {
         var existingUser = await _userManager.FindByEmailAsync(dto.Email);
 
@@ -45,7 +52,9 @@ public class CustomerService : ICustomerService
             LastName = dto.LastName,
             Email = dto.Email,
             PhoneNumber = dto.PhoneNumber,
-            Address = dto.Address
+            Address = dto.Address,
+            SecurityStamp = Guid.NewGuid().ToString(),
+            EmailConfirmed = true
         };
 
         var result = await _userManager.CreateAsync(user, dto.Password);
@@ -55,35 +64,65 @@ public class CustomerService : ICustomerService
             throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
-        if (!await _roleManager.RoleExistsAsync("Customer"))
+        try
         {
-            await _roleManager.CreateAsync(new Role
+            if (!await _roleManager.RoleExistsAsync("Customer"))
             {
-                Name = "Customer",
-                Description = "Customer role"
-            });
+                await _roleManager.CreateAsync(new Role
+                {
+                    Name = "Customer",
+                    Description = "Customer role"
+                });
+            }
+
+            await _userManager.AddToRoleAsync(user, "Customer");
+
+            var customer = new Customer
+            {
+                UserId = user.Id,
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                LoyaltyPoints = 0,
+                TotalSpent = 0,
+                CreditBalance = 0
+            };
+
+            await _customerRepository.AddCustomerAsync(customer);
+            await _customerRepository.SaveChangesAsync();
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var accessToken = _jwtService.GenerateAccessToken(user, roles);
+            var refreshToken = _jwtService.GenerateRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(
+                Convert.ToDouble(_configuration["JWT:RefreshTokenValidityInDays"] ?? "7")
+            );
+
+            await _userManager.UpdateAsync(user);
+
+            return new AuthResponseDTO
+            {
+                Success = true,
+                Message = "Customer registered successfully.",
+                Token = accessToken,
+                RefreshToken = refreshToken,
+                Expiration = DateTime.UtcNow.AddMinutes(
+                    Convert.ToDouble(_configuration["JWT:TokenValidityInMinutes"] ?? "60")
+                ),
+                UserId = user.Id.ToString(),
+                Email = user.Email,
+                UserName = user.UserName,
+                Roles = roles.ToList(),
+                CustomerId = customer.CustomerId
+            };
         }
-
-        await _userManager.AddToRoleAsync(user, "Customer");
-
-        var customer = new Customer
+        catch
         {
-            UserId = user.Id,
-            FirstName = dto.FirstName,
-            LastName = dto.LastName,
-            LoyaltyPoints = 0,
-            TotalSpent = 0,
-            CreditBalance = 0
-        };
-
-        await _customerRepository.AddCustomerAsync(customer);
-        await _customerRepository.SaveChangesAsync();
-
-        return new
-        {
-            Message = "Customer registered successfully.",
-            customer.CustomerId
-        };
+            await _userManager.DeleteAsync(user);
+            throw;
+        }
     }
 
     public async Task<CustomerProfileDTO?> GetProfileAsync(int customerId)
@@ -167,11 +206,11 @@ public class CustomerService : ICustomerService
         return vehicle;
     }
 
-    public async Task<bool> UpdateVehicleAsync(int vehicleId, VehicleCreateUpdateDTO dto)
+    public async Task<bool> UpdateVehicleAsync(int customerId, int vehicleId, VehicleCreateUpdateDTO dto)
     {
         var vehicle = await _customerRepository.GetVehicleByIdAsync(vehicleId);
 
-        if (vehicle == null)
+        if (vehicle == null || vehicle.CustomerId != customerId)
         {
             return false;
         }

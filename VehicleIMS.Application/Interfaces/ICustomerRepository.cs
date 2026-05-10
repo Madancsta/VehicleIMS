@@ -10,6 +10,7 @@ namespace VehicleIMS.Application.Interfaces
 
         Task<Customer?> GetByIdWithUserAndVehiclesAsync(int customerId);
         Task<Customer?> GetByIdWithUserAsync(int customerId);
+        Task<Customer?> GetByUserIdAsync(Guid userId);
         Task<bool> ExistsAsync(int customerId);
         Task AddCustomerAsync(Customer customer);
         Task AddVehicleAsync(Vehicle vehicle);

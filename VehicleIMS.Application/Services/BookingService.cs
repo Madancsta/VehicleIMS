@@ -25,7 +25,7 @@ namespace VehicleIMS.Application.Services
             var booking = new Booking
             {
                 VehicleId = dto.VehicleId,
-                BookingDate = dto.BookingDate,
+                BookingDate = DateTime.SpecifyKind(dto.BookingDate, DateTimeKind.Utc),
                 BookingTime = dto.BookingTime,
                 ServiceType = dto.ServiceType,
                 ServiceDescription = dto.ServiceDescription

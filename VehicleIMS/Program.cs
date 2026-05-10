@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("Frontend", policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
         policy
             .WithOrigins("http://localhost:5173")
@@ -46,7 +46,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-app.UseCors("Frontend");
+app.UseCors("AllowFrontend");
 app.UseAuthentication(); // Add this! Important for Identity
 app.UseAuthorization();
 app.MapControllers();

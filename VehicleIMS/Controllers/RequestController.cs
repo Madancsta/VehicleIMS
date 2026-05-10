@@ -35,4 +35,12 @@ public class RequestController : ControllerBase
         var requests = await _requestService.GetRequestsByBookingAsync(bookingId);
         return Ok(requests);
     }
+
+    [HttpGet("customer/{customerId}")]
+    public async Task<IActionResult> GetRequestsByCustomer(int customerId)
+    {
+        var requests = await _requestService.GetRequestsByCustomerAsync(customerId);
+        return Ok(requests);
+    }
+
 }
