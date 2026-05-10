@@ -19,6 +19,10 @@ public class Booking
     public BookingStatus BookingStatus { get; set; } = BookingStatus.Pending;
 
     [Required]
+    [StringLength(50)]
+    public string ServiceType { get; set; } = string.Empty;
+
+    [Required]
     public string ServiceDescription { get; set; } = string.Empty;
 
     [Required]

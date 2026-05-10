@@ -9,6 +9,7 @@ using VehicleIMS.Application.Interfaces;
 using VehicleIMS.Application.Services;
 using VehicleIMS.Domain.Entities;
 using VehicleIMS.Infrastructure.Data;
+using VehicleIMS.Infrastructure.Repositories;
 using VehicleIMS.Infrastructure.Repository;
 
 namespace VehicleIMS.Infrastructure;
@@ -28,7 +29,7 @@ public static class DependencyInjection
 
         var jwtSettings = configuration.GetSection("JWT");
         var key = Encoding.UTF8.GetBytes(jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT Secret not configured"));
-        
+
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -54,17 +55,19 @@ public static class DependencyInjection
 
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
+        services.AddScoped<IBookingRepository, BookingRepository>();
+        services.AddScoped<IRequestRepository, RequestRepository>();
+        services.AddScoped<IReviewRepository, ReviewRepository>();
+        services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<IStaffRepository, StaffRepository>();
 
-        // Staff Service
         services.AddScoped<IStaffService, StaffService>();
-
-        // Customer History Service
-        services.AddScoped<ICustomerHistoryService, CustomerHistoryService>();
-
-        // Customer History Repository
-        services.AddScoped<ICustomerHistoryRepository, CustomerHistoryRepository>();
-
-
+        services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<ICustomerService, CustomerService>();
+        services.AddScoped<IBookingService, BookingService>();
+        services.AddScoped<IRequestService, RequestService>();
+        services.AddScoped<IReviewService, ReviewService>();
         services.AddAuthorization(options =>
         {
             options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
