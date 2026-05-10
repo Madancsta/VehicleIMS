@@ -408,6 +408,9 @@ namespace VehicleIMS.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SalesId"));
 
+                    b.Property<int>("BookingId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer");
 
@@ -430,6 +433,9 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Property<int>("PaymentStatus")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("ReviewId")
+                        .HasColumnType("integer");
+
                     b.Property<decimal>("SalesAmount")
                         .HasColumnType("decimal(18,2)");
 
@@ -444,10 +450,14 @@ namespace VehicleIMS.Infrastructure.Migrations
 
                     b.HasKey("SalesId");
 
+                    b.HasIndex("BookingId");
+
                     b.HasIndex("CustomerId");
 
                     b.HasIndex("InvoiceNumber")
                         .IsUnique();
+
+                    b.HasIndex("ReviewId");
 
                     b.HasIndex("ServiceId");
 
@@ -849,18 +859,32 @@ namespace VehicleIMS.Infrastructure.Migrations
 
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Sales", b =>
                 {
+                    b.HasOne("VehicleIMS.Domain.Entities.Booking", "Booking")
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("VehicleIMS.Domain.Entities.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("VehicleIMS.Domain.Entities.Review", "Review")
+                        .WithMany()
+                        .HasForeignKey("ReviewId");
+
                     b.HasOne("VehicleIMS.Domain.Entities.Service", "Service")
                         .WithMany()
                         .HasForeignKey("ServiceId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.Navigation("Booking");
+
                     b.Navigation("Customer");
+
+                    b.Navigation("Review");
 
                     b.Navigation("Service");
                 });
@@ -882,17 +906,6 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Navigation("Part");
 
                     b.Navigation("Sales");
-                });
-
-            modelBuilder.Entity("VehicleIMS.Domain.Entities.Vehicle", b =>
-                {
-                    b.HasOne("VehicleIMS.Domain.Entities.Customer", "Customer")
-                        .WithMany("Vehicles")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Vehicle", b =>
