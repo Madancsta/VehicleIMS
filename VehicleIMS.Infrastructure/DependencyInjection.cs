@@ -10,6 +10,7 @@ using VehicleIMS.Application.Services;
 using VehicleIMS.Domain.Entities;
 using VehicleIMS.Infrastructure.Data;
 using VehicleIMS.Infrastructure.Repositories;
+using VehicleIMS.Infrastructure.Repository;
 
 namespace VehicleIMS.Infrastructure;
 
@@ -69,6 +70,12 @@ public static class DependencyInjection
             options.AddPolicy("StaffOrAdmin", policy => policy.RequireRole("Staff", "Admin"));
             options.AddPolicy("CustomerOrAdmin", policy => policy.RequireRole("Customer", "Admin"));
         });
+
+        services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
+        services.AddScoped<ISalesRepository, SalesRepository>();
+        services.AddScoped<ISalesService, SalesService>();
+        services.AddScoped<IVehicleService, VehicleService>();
+        services.AddScoped<IEmailService, EmailService>();
 
         return services;
     }
