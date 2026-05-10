@@ -13,6 +13,7 @@ namespace VehicleIMS.Application.Interfaces
         Task AddRequestAsync(Request request);
         Task AddRequestPartAsync(RequestPart requestPart);
         Task<List<Request>> GetRequestsByBookingIdAsync(int bookingId);
+        Task<List<Request>> GetRequestsByCustomerIdAsync(int customerId);
         Task SaveChangesAsync();
     }
 }

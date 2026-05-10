@@ -33,6 +33,35 @@ namespace VehicleIMS.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<bool> SaleBelongsToCustomerAsync(int salesId, int customerId)
+        {
+            return await _context.Sales
+                .Include(s => s.Booking)
+                .ThenInclude(b => b.Vehicle)
+                .AnyAsync(s =>
+                    s.SalesId == salesId &&
+                    s.Booking.Vehicle.CustomerId == customerId);
+        }
+
+        public async Task<bool> ReviewExistsForSaleAsync(int salesId)
+        {
+            return await _context.Reviews.AnyAsync(r => r.SalesId == salesId);
+        }
+
+        public async Task<List<Sales>> GetReviewableSalesByCustomerIdAsync(int customerId)
+        {
+            return await _context.Sales
+                .Include(s => s.Booking)
+                .ThenInclude(b => b.Vehicle)
+                .Include(s => s.Review)
+                .Where(s =>
+                    s.Booking.Vehicle.CustomerId == customerId &&
+                    s.Review == null)
+                .OrderByDescending(s => s.SalesDate)
+                .ToListAsync();
+        }
+
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
