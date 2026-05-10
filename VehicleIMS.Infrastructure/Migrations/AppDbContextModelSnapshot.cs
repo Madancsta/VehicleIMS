@@ -895,6 +895,17 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Navigation("Customer");
                 });
 
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.Vehicle", b =>
+                {
+                    b.HasOne("VehicleIMS.Domain.Entities.Customer", "Customer")
+                        .WithMany("Vehicles")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
             modelBuilder.Entity("VehicleIMS.Domain.Entities.VendorPart", b =>
                 {
                     b.HasOne("VehicleIMS.Domain.Entities.Part", "Part")

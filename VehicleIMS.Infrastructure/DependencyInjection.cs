@@ -77,10 +77,18 @@ public static class DependencyInjection
         services.AddScoped<IVehicleService, VehicleService>();
         services.AddScoped<IEmailService, EmailService>();
 
-        // Staff Service
-       services.AddScoped<IStaffService, StaffService>();
-        // Customer History Service
-       services.AddScoped<ICustomerHistoryService, CustomerHistoryService>();
+        services.AddScoped<IStaffService, StaffService>();
+        services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<ICustomerService, CustomerService>();
+        services.AddScoped<IBookingService, BookingService>();
+        services.AddScoped<IRequestService, RequestService>();
+        services.AddScoped<IReviewService, ReviewService>();
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+            options.AddPolicy("StaffOrAdmin", policy => policy.RequireRole("Staff", "Admin"));
+            options.AddPolicy("CustomerOrAdmin", policy => policy.RequireRole("Customer", "Admin"));
+        });
 
         return services;
     }

@@ -11,9 +11,10 @@ namespace VehicleIMS.Application.Services
     {
         private readonly UserManager<Users> _userManager;
         private readonly RoleManager<Role> _roleManager;
+
         public StaffService(
             UserManager<Users> userManager,
-            RoleManager<Role> roleManager)
+            RoleManager<Role> roleManager)          
         {
             _userManager = userManager;
             _roleManager = roleManager;
