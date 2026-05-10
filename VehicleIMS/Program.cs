@@ -25,8 +25,8 @@ builder.Services.AddSwaggerGen();
 
 // Register infrastructure (DbContext + Identity)
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddScoped<IPartRepository, PartRepository>();
-builder.Services.AddScoped<IPartService, PartService>();
+//builder.Services.AddScoped<IPartRepository, PartRepository>();
+//builder.Services.AddScoped<IPartService, PartService>();
 
 
 var app = builder.Build();

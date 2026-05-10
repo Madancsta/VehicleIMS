@@ -10,6 +10,7 @@ using VehicleIMS.Application.Services;
 using VehicleIMS.Domain.Entities;
 using VehicleIMS.Infrastructure.Data;
 using VehicleIMS.Infrastructure.Repositories;
+using VehicleIMS.Infrastructure.Repository;
 
 namespace VehicleIMS.Infrastructure;
 
