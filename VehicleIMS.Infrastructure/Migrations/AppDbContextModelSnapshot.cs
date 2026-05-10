@@ -146,6 +146,11 @@ namespace VehicleIMS.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("ServiceType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<int>("VehicleId")
                         .HasColumnType("integer");
 
@@ -166,6 +171,14 @@ namespace VehicleIMS.Infrastructure.Migrations
 
                     b.Property<float>("CreditBalance")
                         .HasColumnType("real");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("LoyaltyPoints")
                         .HasColumnType("integer");
@@ -325,7 +338,7 @@ namespace VehicleIMS.Infrastructure.Migrations
 
                     b.HasIndex("PartId");
 
-                    b.ToTable("RequestPart");
+                    b.ToTable("RequestParts");
                 });
 
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Review", b =>

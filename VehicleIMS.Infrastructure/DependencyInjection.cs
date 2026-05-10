@@ -10,7 +10,6 @@ using VehicleIMS.Application.Services;
 using VehicleIMS.Domain.Entities;
 using VehicleIMS.Infrastructure.Data;
 using VehicleIMS.Infrastructure.Repositories;
-using VehicleIMS.Infrastructure.Repository;
 
 namespace VehicleIMS.Infrastructure;
 
@@ -55,7 +54,15 @@ public static class DependencyInjection
 
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
+        services.AddScoped<IBookingRepository, BookingRepository>();
+        services.AddScoped<IRequestRepository, RequestRepository>();
+        services.AddScoped<IReviewRepository, ReviewRepository>();
 
+        services.AddScoped<ICustomerService, CustomerService>();
+        services.AddScoped<IBookingService, BookingService>();
+        services.AddScoped<IRequestService, RequestService>();
+        services.AddScoped<IReviewService, ReviewService>();
         services.AddAuthorization(options =>
         {
             options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));

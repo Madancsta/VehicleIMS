@@ -26,6 +26,7 @@ public class AppDbContext : IdentityDbContext<Users, Role, Guid>
         public DbSet<VendorPart> VendorParts => Set<VendorPart>();
         public DbSet<VendorUser> VendorUsers => Set<VendorUser>();
         public DbSet<Request> Requests => Set<Request>();
+        public DbSet<RequestPart> RequestParts => Set<RequestPart>();
         public DbSet<Review> Reviews => Set<Review>();
         public DbSet<Sales> Sales => Set<Sales>();
         public DbSet<Service> Services => Set<Service>();

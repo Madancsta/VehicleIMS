@@ -1,14 +1,20 @@
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using VehicleIMS.Application.Interfaces;
-using VehicleIMS.Application.Services;
-using VehicleIMS.Domain.Entities;
 using VehicleIMS.Infrastructure;
 using VehicleIMS.Infrastructure.Data;
 using VehicleIMS.Infrastructure.Middleware;
 using VehicleIMS.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -19,8 +25,8 @@ builder.Services.AddSwaggerGen();
 
 // Register infrastructure (DbContext + Identity)
 builder.Services.AddInfrastructure(builder.Configuration);
-//builder.Services.AddScoped<IPartRepository, PartRepository>();
-//builder.Services.AddScoped<IPartService, PartService>();
+builder.Services.AddScoped<IPartRepository, PartRepository>();
+builder.Services.AddScoped<IPartService, PartService>();
 
 
 var app = builder.Build();
@@ -35,7 +41,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
+app.UseCors("Frontend");
 app.UseAuthentication(); // Add this! Important for Identity
 app.UseAuthorization();
 app.MapControllers();
