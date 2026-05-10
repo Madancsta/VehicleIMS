@@ -227,7 +227,7 @@ namespace VehicleIMS.Infrastructure.Migrations
 
                     b.HasKey("PartCategoryId");
 
-                    b.ToTable("PartCategory");
+                    b.ToTable("PartCategories");
                 });
 
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Purchase", b =>
@@ -265,6 +265,12 @@ namespace VehicleIMS.Infrastructure.Migrations
 
                     b.Property<int>("PurchaseVendorPartId")
                         .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("PurchaseId", "PartId", "VendorId");
 
@@ -346,8 +352,7 @@ namespace VehicleIMS.Infrastructure.Migrations
 
                     b.HasKey("ReviewId");
 
-                    b.HasIndex("SalesId")
-                        .IsUnique();
+                    b.HasIndex("SalesId");
 
                     b.ToTable("Reviews");
                 });
@@ -390,13 +395,26 @@ namespace VehicleIMS.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SalesId"));
 
-                    b.Property<int>("BookingId")
+                    b.Property<int>("CustomerId")
                         .HasColumnType("integer");
+
+                    b.Property<decimal>("Discount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("InvoiceNumber")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<decimal>("PartsTotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<int>("PaymentStatus")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PaymentStatusId")
                         .HasColumnType("integer");
 
                     b.Property<decimal>("SalesAmount")
@@ -405,11 +423,74 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Property<DateTime>("SalesDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<decimal>("ServiceCharge")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("ServiceId")
+                        .HasColumnType("integer");
+
                     b.HasKey("SalesId");
 
-                    b.HasIndex("BookingId");
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("InvoiceNumber")
+                        .IsUnique();
+
+                    b.HasIndex("ServiceId");
 
                     b.ToTable("Sales");
+                });
+
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.SalesItem", b =>
+                {
+                    b.Property<int>("SalesItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SalesItemId"));
+
+                    b.Property<int>("PartId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SalesId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("SalesItemId");
+
+                    b.HasIndex("PartId");
+
+                    b.HasIndex("SalesId");
+
+                    b.ToTable("SalesItems");
+                });
+
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.Service", b =>
+                {
+                    b.Property<int>("ServiceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ServiceId"));
+
+                    b.Property<float>("ServiceCharge")
+                        .HasColumnType("real");
+
+                    b.Property<string>("ServiceType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("VehicleType")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ServiceId");
+
+                    b.ToTable("Services");
                 });
 
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Users", b =>
@@ -694,7 +775,7 @@ namespace VehicleIMS.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("VehicleIMS.Domain.Entities.Purchase", "Purchase")
-                        .WithMany()
+                        .WithMany("PurchaseVendorParts")
                         .HasForeignKey("PurchaseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -745,8 +826,8 @@ namespace VehicleIMS.Infrastructure.Migrations
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Review", b =>
                 {
                     b.HasOne("VehicleIMS.Domain.Entities.Sales", "Sales")
-                        .WithOne("Review")
-                        .HasForeignKey("VehicleIMS.Domain.Entities.Review", "SalesId")
+                        .WithMany()
+                        .HasForeignKey("SalesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -755,13 +836,39 @@ namespace VehicleIMS.Infrastructure.Migrations
 
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Sales", b =>
                 {
-                    b.HasOne("VehicleIMS.Domain.Entities.Booking", "Booking")
+                    b.HasOne("VehicleIMS.Domain.Entities.Customer", "Customer")
                         .WithMany()
-                        .HasForeignKey("BookingId")
+                        .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Booking");
+                    b.HasOne("VehicleIMS.Domain.Entities.Service", "Service")
+                        .WithMany()
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Service");
+                });
+
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.SalesItem", b =>
+                {
+                    b.HasOne("VehicleIMS.Domain.Entities.Part", "Part")
+                        .WithMany()
+                        .HasForeignKey("PartId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("VehicleIMS.Domain.Entities.Sales", "Sales")
+                        .WithMany("SalesItems")
+                        .HasForeignKey("SalesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Part");
+
+                    b.Navigation("Sales");
                 });
 
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Vehicle", b =>
@@ -818,6 +925,11 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Navigation("Vehicles");
                 });
 
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.Purchase", b =>
+                {
+                    b.Navigation("PurchaseVendorParts");
+                });
+
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Request", b =>
                 {
                     b.Navigation("RequestParts");
@@ -825,8 +937,7 @@ namespace VehicleIMS.Infrastructure.Migrations
 
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Sales", b =>
                 {
-                    b.Navigation("Review")
-                        .IsRequired();
+                    b.Navigation("SalesItems");
                 });
 #pragma warning restore 612, 618
         }

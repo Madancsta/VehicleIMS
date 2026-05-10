@@ -1,33 +1,55 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using VehicleIMS.Domain.Enums;
 
-namespace VehicleIMS.Domain.Entities
+namespace VehicleIMS.Domain.Entities;
+
+public class Sales
 {
-    public class Sales
-    {
-        [Key]
-        public int SalesId { get; set; }
+    [Key]
+    public int SalesId { get; set; }
 
-        [Required]
-        public int BookingId { get; set; }
+    [Required]
+    [StringLength(30)]
+    public string InvoiceNumber { get; set; } = string.Empty;
 
-        [Required]
-        public DateTime SalesDate { get; set; } = DateTime.UtcNow;
+    [Required]
+    public DateTime SalesDate { get; set; } = DateTime.UtcNow;
 
-        [Required]
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal SalesAmount { get; set; }
+    // ── Customer ────────────────────────────────────────────────────────────
+    [Required]
+    [ForeignKey(nameof(Customer))]
+    public int CustomerId { get; set; }
+    public Customer Customer { get; set; } = null!;
 
-        [Required]
-        public int PaymentStatusId { get; set; }
+    // ── Service
+    [ForeignKey(nameof(Service))]
+    public int? ServiceId { get; set; }
+    public Service? Service { get; set; }
 
-        // Navigation properties
-        [ForeignKey("BookingId")]
-        public Booking Booking { get; set; }
+    // ── Financials ───────────────────────────────────────────────────────────
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal PartsTotal { get; set; }
 
-        public PaymentStatus PaymentStatus { get; set; }
-        public Review Review { get; set; }
-    }
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal ServiceCharge { get; set; }
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal Discount { get; set; }
+
+    [Required]
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal SalesAmount { get; set; }
+
+    // ── Payment ──────────────────────────────────────────────────────────────
+    [Required]
+    public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
+
+    [Required]
+    [StringLength(20)]
+    public string PaymentMethod { get; set; } = "Cash"; // Cash | Card | Credit
+
+    // ── Navigation ───────────────────────────────────────────────────────────
+    public ICollection<SalesItem> SalesItems { get; set; } = new List<SalesItem>();
 }
