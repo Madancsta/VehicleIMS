@@ -28,6 +28,7 @@ public class CustomerService : ICustomerService
         _configuration = configuration;
     }
 
+    public async Task<AuthResponseDTO> RegisterAsync(CustomerRegisterDTO dto)
     {
         var existingUser = await _userManager.FindByEmailAsync(dto.Email);
 
@@ -51,6 +52,9 @@ public class CustomerService : ICustomerService
             LastName = dto.LastName,
             Email = dto.Email,
             PhoneNumber = dto.PhoneNumber,
+            Address = dto.Address,
+            SecurityStamp = Guid.NewGuid().ToString(),
+            EmailConfirmed = true
         };
 
         var result = await _userManager.CreateAsync(user, dto.Password);
@@ -86,9 +90,32 @@ public class CustomerService : ICustomerService
             await _customerRepository.AddCustomerAsync(customer);
             await _customerRepository.SaveChangesAsync();
 
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var accessToken = _jwtService.GenerateAccessToken(user, roles);
+            var refreshToken = _jwtService.GenerateRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(
+                Convert.ToDouble(_configuration["JWT:RefreshTokenValidityInDays"] ?? "7")
+            );
+
+            await _userManager.UpdateAsync(user);
+
+            return new AuthResponseDTO
             {
                 Success = true,
                 Message = "Customer registered successfully.",
+                Token = accessToken,
+                RefreshToken = refreshToken,
+                Expiration = DateTime.UtcNow.AddMinutes(
+                    Convert.ToDouble(_configuration["JWT:TokenValidityInMinutes"] ?? "60")
+                ),
+                UserId = user.Id.ToString(),
+                Email = user.Email,
+                UserName = user.UserName,
+                Roles = roles.ToList(),
+                CustomerId = customer.CustomerId
             };
         }
         catch
@@ -179,9 +206,11 @@ public class CustomerService : ICustomerService
         return vehicle;
     }
 
+    public async Task<bool> UpdateVehicleAsync(int customerId, int vehicleId, VehicleCreateUpdateDTO dto)
     {
         var vehicle = await _customerRepository.GetVehicleByIdAsync(vehicleId);
 
+        if (vehicle == null || vehicle.CustomerId != customerId)
         {
             return false;
         }

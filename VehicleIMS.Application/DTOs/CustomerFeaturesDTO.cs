@@ -1,4 +1,5 @@
-﻿namespace VehicleIMS.Application.DTOs
+﻿using System.ComponentModel.DataAnnotations;
+namespace VehicleIMS.Application.DTOs
 {
     public class CustomerRegisterDTO
     {

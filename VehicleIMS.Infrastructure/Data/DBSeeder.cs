@@ -45,34 +45,65 @@ public static class DBSeeder
         }
     }
 
-        // Create admin user if not exists
-        var adminEmail = "admin@vehicleims.com"; // Consistent email
-        var adminUser = await userManager.FindByEmailAsync(adminEmail);
+    private static async Task<Users> SeedUserAsync(
+        UserManager<Users> userManager,
+        string username,
+        string email,
+        string password,
+        string role)
+    {
+        var user = await userManager.FindByEmailAsync(email);
 
-        if (adminUser == null)
+        if (user == null)
         {
-            var admin = new Users
+            user = new Users
             {
                 Id = Guid.NewGuid(),
-                UserName = "admin",
-                Email = adminEmail, // Use the same email
-                PhoneNumber = "1234567890",
-                Address = "123 Main St",
+                UserName = username,
+                Email = email,
+                PhoneNumber = "9800000000",
+                Address = "Kathmandu",
                 CreatedAt = DateTime.UtcNow,
-                Status = UserStatus.Active
+                Status = UserStatus.Active,
+                EmailConfirmed = true
             };
 
-            var result = await userManager.CreateAsync(admin, "Admin@123");
+            var result = await userManager.CreateAsync(user, password);
 
-            if (result.Succeeded)
+            if (!result.Succeeded)
             {
-                await userManager.AddToRoleAsync(admin, "Admin");
-            }
-            else
-            {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                throw new Exception($"Failed to create admin user: {errors}");
+                var errors = string.Join(", ", result.Errors.Select(x => x.Description));
+                throw new Exception(errors);
             }
         }
+
+        if (!await userManager.IsInRoleAsync(user, role))
+        {
+            await userManager.AddToRoleAsync(user, role);
+        }
+
+        return user;
+    }
+
+    private static async Task SeedCustomerAsync(AppDbContext dbContext, Users user)
+    {
+        var customerExists = await dbContext.Customers.AnyAsync(c => c.UserId == user.Id);
+
+        if (customerExists)
+        {
+            return;
+        }
+
+        dbContext.Customers.Add(new Customer
+        {
+            UserId = user.Id,
+            FirstName = "Test",
+            LastName = "Customer",
+            LoyaltyPoints = 0,
+            TotalSpent = 0,
+            CreditBalance = 0
+        });
+
+        await dbContext.SaveChangesAsync();
     }
 }

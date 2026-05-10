@@ -92,7 +92,19 @@ public class CustomerController : ControllerBase
         return Ok(vehicle);
     }
 
+    [Authorize(Roles = "Customer")]
+    [HttpPut("{customerId}/vehicles/{vehicleId}")]
+    public async Task<IActionResult> UpdateVehicle(
+        int customerId,
+        int vehicleId,
+        VehicleCreateUpdateDTO dto)
+    {
+        if (!await IsOwnCustomer(customerId))
         {
+            return Forbid();
+        }
+
+        var updated = await _customerService.UpdateVehicleAsync(customerId, vehicleId, dto);
 
         if (!updated)
         {

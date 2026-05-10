@@ -6,7 +6,6 @@ using VehicleIMS.Application.Interfaces;
 
 namespace VehicleIMS.Controllers
 {
-
     [Route("api/reviews")]
     [ApiController]
     public class ReviewController : ControllerBase
@@ -56,6 +55,14 @@ namespace VehicleIMS.Controllers
         {
             try
             {
+                var customerId = await GetCurrentCustomerIdAsync();
+
+                if (customerId == null)
+                {
+                    return Forbid();
+                }
+
+                var result = await _reviewService.CreateReviewAsync(dto, customerId.Value);
                 return Ok(result);
             }
             catch (Exception ex)
