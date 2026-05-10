@@ -13,13 +13,21 @@ namespace VehicleIMS.Application.Services
             _reviewRepository = reviewRepository;
         }
 
-        public async Task<object> CreateReviewAsync(ReviewDTO dto)
+        public async Task<object> CreateReviewAsync(ReviewDTO dto, int customerId)
         {
-            var saleExists = await _reviewRepository.SaleExistsAsync(dto.SalesId);
+            var belongsToCustomer = await _reviewRepository
+                .SaleBelongsToCustomerAsync(dto.SalesId, customerId);
 
-            if (!saleExists)
+            if (!belongsToCustomer)
             {
-                throw new Exception("Sales record not found.");
+                throw new Exception("Sales record not found for this customer.");
+            }
+
+            var reviewExists = await _reviewRepository.ReviewExistsForSaleAsync(dto.SalesId);
+
+            if (reviewExists)
+            {
+                throw new Exception("Review already exists for this sale.");
             }
 
             var review = new Review
@@ -39,6 +47,22 @@ namespace VehicleIMS.Application.Services
                 review.ReviewId
             };
         }
+
+        public async Task<List<ReviewableSaleDTO>> GetReviewableSalesByCustomerIdAsync(int customerId)
+        {
+            var sales = await _reviewRepository.GetReviewableSalesByCustomerIdAsync(customerId);
+
+            return sales.Select(s => new ReviewableSaleDTO
+            {
+                SalesId = s.SalesId,
+                BookingId = s.BookingId,
+                ServiceType = s.Booking.ServiceType,
+                VehicleNumber = s.Booking.Vehicle.VehicleNumber,
+                SalesDate = s.SalesDate,
+                SalesAmount = s.SalesAmount
+            }).ToList();
+        }
+
 
         public async Task<List<object>> GetReviewsBySalesIdAsync(int salesId)
         {

@@ -32,6 +32,12 @@ namespace VehicleIMS.Infrastructure.Repositories
                 .FirstOrDefaultAsync(c => c.CustomerId == customerId);
         }
 
+        public async Task<Customer?> GetByUserIdAsync(Guid userId)
+        {
+            return await _context.Customers
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+        }
+
         public async Task<bool> ExistsAsync(int customerId)
         {
             return await _context.Customers.AnyAsync(c => c.CustomerId == customerId);

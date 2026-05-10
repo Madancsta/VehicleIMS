@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using VehicleIMS.Application.DTOs;
 using VehicleIMS.Application.Interfaces;
 
@@ -9,10 +11,14 @@ namespace VehicleIMS.Controllers;
 public class CustomerController : ControllerBase
 {
     private readonly ICustomerService _customerService;
+    private readonly ICustomerRepository _customerRepository;
 
-    public CustomerController(ICustomerService customerService)
+    public CustomerController(
+        ICustomerService customerService,
+        ICustomerRepository customerRepository)
     {
         _customerService = customerService;
+        _customerRepository = customerRepository;
     }
 
     [HttpPost("register")]
@@ -29,9 +35,15 @@ public class CustomerController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Customer")]
     [HttpGet("{customerId}/profile")]
     public async Task<IActionResult> GetProfile(int customerId)
     {
+        if (!await IsOwnCustomer(customerId))
+        {
+            return Forbid();
+        }
+
         var profile = await _customerService.GetProfileAsync(customerId);
 
         if (profile == null)
@@ -42,9 +54,15 @@ public class CustomerController : ControllerBase
         return Ok(profile);
     }
 
+    [Authorize(Roles = "Customer")]
     [HttpPut("{customerId}/profile")]
     public async Task<IActionResult> UpdateProfile(int customerId, CustomerProfileUpdateDTO dto)
     {
+        if (!await IsOwnCustomer(customerId))
+        {
+            return Forbid();
+        }
+
         var updated = await _customerService.UpdateProfileAsync(customerId, dto);
 
         if (!updated)
@@ -55,9 +73,15 @@ public class CustomerController : ControllerBase
         return Ok("Profile updated successfully.");
     }
 
+    [Authorize(Roles = "Customer")]
     [HttpPost("{customerId}/vehicles")]
     public async Task<IActionResult> AddVehicle(int customerId, VehicleCreateUpdateDTO dto)
     {
+        if (!await IsOwnCustomer(customerId))
+        {
+            return Forbid();
+        }
+
         var vehicle = await _customerService.AddVehicleAsync(customerId, dto);
 
         if (vehicle == null)
@@ -68,10 +92,7 @@ public class CustomerController : ControllerBase
         return Ok(vehicle);
     }
 
-    [HttpPut("vehicles/{vehicleId}")]
-    public async Task<IActionResult> UpdateVehicle(int vehicleId, VehicleCreateUpdateDTO dto)
-    {
-        var updated = await _customerService.UpdateVehicleAsync(vehicleId, dto);
+        {
 
         if (!updated)
         {
@@ -79,5 +100,19 @@ public class CustomerController : ControllerBase
         }
 
         return Ok("Vehicle updated successfully.");
+    }
+
+    private async Task<bool> IsOwnCustomer(int customerId)
+    {
+        var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userIdValue, out var userId))
+        {
+            return false;
+        }
+
+        var customer = await _customerRepository.GetByUserIdAsync(userId);
+
+        return customer?.CustomerId == customerId;
     }
 }

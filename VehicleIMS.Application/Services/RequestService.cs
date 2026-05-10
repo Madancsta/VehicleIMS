@@ -76,4 +76,27 @@ public class RequestService : IRequestService
             })
         }).Cast<object>().ToList();
     }
+
+    public async Task<List<object>> GetRequestsByCustomerAsync(int customerId)
+    {
+        var requests = await _requestRepository.GetRequestsByCustomerIdAsync(customerId);
+
+        return requests.Select(r => new
+        {
+            r.RequestId,
+            r.BookingId,
+            r.RequestStatusId,
+            r.RequestedDate,
+            VehicleId = r.Booking.VehicleId,
+            VehicleName = $"{r.Booking.Vehicle.Brand} {r.Booking.Vehicle.Model}",
+            Parts = r.RequestParts.Select(rp => new
+            {
+                rp.PartId,
+                rp.Part.PartName,
+                rp.RequestQuantity,
+                rp.RequestDescription
+            })
+        }).Cast<object>().ToList();
+    }
+
 }

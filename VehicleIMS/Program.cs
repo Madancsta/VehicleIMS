@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("Frontend", policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
         policy
             .WithOrigins("http://localhost:5173")
@@ -25,8 +25,6 @@ builder.Services.AddSwaggerGen();
 
 // Register infrastructure (DbContext + Identity)
 builder.Services.AddInfrastructure(builder.Configuration);
-//builder.Services.AddScoped<IPartRepository, PartRepository>();
-//builder.Services.AddScoped<IPartService, PartService>();
 
 
 var app = builder.Build();
@@ -41,12 +39,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
-
-app.UseCors("Frontend");
+app.UseHttpsRedirection();
 app.UseAuthentication(); // Add this! Important for Identity
 app.UseAuthorization();
 app.MapControllers();

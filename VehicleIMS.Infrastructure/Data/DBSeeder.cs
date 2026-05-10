@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using VehicleIMS.Domain.Entities;
 using VehicleIMS.Domain.Enums;
+using VehicleIMS.Infrastructure.Data;
 
 public static class DBSeeder
 {
@@ -11,6 +13,7 @@ public static class DBSeeder
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Users>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         await SeedRoleAsync(roleManager, "Admin");
         await SeedRoleAsync(roleManager, "Staff");
@@ -18,7 +21,16 @@ public static class DBSeeder
 
         await SeedUserAsync(userManager, "admin", "admin@vehicleims.com", "Admin@123", "Admin");
         await SeedUserAsync(userManager, "staff", "staff@vehicleims.com", "Staff@123", "Staff");
-        await SeedUserAsync(userManager, "customer", "customer@vehicleims.com", "Customer@123", "Customer");
+
+        var customerUser = await SeedUserAsync(
+            userManager,
+            "customer",
+            "customer@vehicleims.com",
+            "Customer@123",
+            "Customer"
+        );
+
+        await SeedCustomerAsync(dbContext, customerUser);
     }
 
     private static async Task SeedRoleAsync(RoleManager<Role> roleManager, string roleName)
@@ -33,37 +45,34 @@ public static class DBSeeder
         }
     }
 
-    private static async Task SeedUserAsync(
-        UserManager<Users> userManager,
-        string username,
-        string email,
-        string password,
-        string role)
-    {
-        var user = await userManager.FindByEmailAsync(email);
+        // Create admin user if not exists
+        var adminEmail = "admin@vehicleims.com"; // Consistent email
+        var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
-        if (user != null) return;
-
-        var newUser = new Users
+        if (adminUser == null)
         {
-            Id = Guid.NewGuid(),
-            UserName = username,
-            Email = email,
-            PhoneNumber = "9800000000",
-            Address = "Kathmandu",
-            CreatedAt = DateTime.UtcNow,
-            Status = UserStatus.Active,
-            EmailConfirmed = true
-        };
+            var admin = new Users
+            {
+                Id = Guid.NewGuid(),
+                UserName = "admin",
+                Email = adminEmail, // Use the same email
+                PhoneNumber = "1234567890",
+                Address = "123 Main St",
+                CreatedAt = DateTime.UtcNow,
+                Status = UserStatus.Active
+            };
 
-        var result = await userManager.CreateAsync(newUser, password);
+            var result = await userManager.CreateAsync(admin, "Admin@123");
 
-        if (!result.Succeeded)
-        {
-            var errors = string.Join(", ", result.Errors.Select(x => x.Description));
-            throw new Exception(errors);
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(admin, "Admin");
+            }
+            else
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new Exception($"Failed to create admin user: {errors}");
+            }
         }
-
-        await userManager.AddToRoleAsync(newUser, role);
     }
 }
