@@ -77,6 +77,11 @@ public static class DependencyInjection
         services.AddScoped<IVehicleService, VehicleService>();
         services.AddScoped<IEmailService, EmailService>();
 
+        // Staff Service
+       services.AddScoped<IStaffService, StaffService>();
+        // Customer History Service
+       services.AddScoped<ICustomerHistoryService, CustomerHistoryService>();
+
         return services;
     }
 }
