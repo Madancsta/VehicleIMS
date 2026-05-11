@@ -1,6 +1,7 @@
-namespace VehicleIMS.Application.Interfaces;
+using VehicleIMS.Domain.Entities;
 
-public class ICustomerService
+public interface ICustomerService
 {
-    
+    Task<List<Customer>> GetAllCustomers();
+    Task<Customer> GetCustomerById(int id);
 }

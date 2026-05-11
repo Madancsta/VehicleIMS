@@ -9,6 +9,7 @@ using VehicleIMS.Application.Interfaces;
 using VehicleIMS.Application.Services;
 using Microsoft.AspNetCore.Identity;
 using System.Text;
+using VehicleIMS.Infrastructure.Repository;
 
 namespace VehicleIMS.Infrastructure;
 
@@ -53,6 +54,8 @@ public static class DependencyInjection
 
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<CustomerRepository>();
+        services.AddScoped<CustomerRepository>();
 
         services.AddAuthorization(options =>
         {
@@ -60,7 +63,7 @@ public static class DependencyInjection
             options.AddPolicy("StaffOrAdmin", policy => policy.RequireRole("Staff", "Admin"));
             options.AddPolicy("CustomerOrAdmin", policy => policy.RequireRole("Customer", "Admin"));
         });
-
+       
         return services;
     }
 }
