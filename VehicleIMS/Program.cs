@@ -1,13 +1,20 @@
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using VehicleIMS.Application.Interfaces;
-using VehicleIMS.Application.Services;
-using VehicleIMS.Domain.Entities;
 using VehicleIMS.Infrastructure;
 using VehicleIMS.Infrastructure.Data;
+using VehicleIMS.Infrastructure.Middleware;
 using VehicleIMS.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -24,6 +31,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
+app.UseMiddleware<GlobalExceptionHandler>();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -32,7 +41,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
+app.UseCors("AllowFrontend");
 app.UseAuthentication(); // Add this! Important for Identity
 app.UseAuthorization();
 app.MapControllers();

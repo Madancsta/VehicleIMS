@@ -1,7 +1,17 @@
-using VehicleIMS.Domain.Entities;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using VehicleIMS.Application.DTOs;
 
-public interface ICustomerService
+namespace VehicleIMS.Application.Interfaces
 {
-    Task<List<Customer>> GetAllCustomers();
-    Task<Customer> GetCustomerById(int id);
+    public interface ICustomerService
+    {
+        Task<AuthResponseDTO> RegisterAsync(CustomerRegisterDTO dto);
+        Task<CustomerProfileDTO?> GetProfileAsync(int customerId);
+        Task<bool> UpdateProfileAsync(int customerId, CustomerProfileUpdateDTO dto);
+        Task<object?> AddVehicleAsync(int customerId, VehicleCreateUpdateDTO dto);
+        Task<bool> UpdateVehicleAsync(int customerId, int vehicleId, VehicleCreateUpdateDTO dto);
+
+    }
 }

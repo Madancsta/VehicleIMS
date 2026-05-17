@@ -1,95 +1,66 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
-using VehicleIMS.Application.DTOs;
+using VehicleIMS.Application.Interfaces;
 using VehicleIMS.Domain.Entities;
 using VehicleIMS.Infrastructure.Data;
 
-namespace VehicleIMS.Infrastructure.Repository;
-
-public class CustomerRepository
+namespace VehicleIMS.Infrastructure.Repositories
 {
-    private readonly AppDbContext _context;
-
-    public CustomerRepository(AppDbContext context)
+    public class CustomerRepository : ICustomerRepository
     {
-        _context = context;
-    }
+        private readonly AppDbContext _context;
 
-    public async Task<List<CustomerResponseDto>> GetAllCustomers()
-    {
-        return await _context.Customers
-            .Include(c => c.User)
-            .Include(c => c.Vehicles)
-            .Select(c => new CustomerResponseDto
-            {
-                CustomerId = c.CustomerId,
-                UserId = c.UserId,
-                FullName = c.User.FirstName + " " + c.User.LastName,
-                Email = c.User.Email ?? "",
-                PhoneNumber = c.User.PhoneNumber ?? "",
-                Address = c.User.Address,
-
-                LoyaltyPoints = c.LoyaltyPoints,
-                TotalSpent = c.TotalSpent,
-                CreditBalance = c.CreditBalance,
-
-                Vehicles = c.Vehicles.Select(v => new VehicleResponseDto
-                {
-                    VehicleId = v.VehicleId,
-                    VehicleNumber = v.VehicleNumber,
-                    Brand = v.Brand,
-                    Model = v.Model,
-                    Color = v.Color,
-                    Year = v.Year
-                }).ToList()
-            })
-            .ToListAsync();
-    }
-
-    public async Task<CustomerResponseDto?> GetCustomerById(int id)
-    {
-        return await _context.Customers
-            .Include(c => c.User)
-            .Include(c => c.Vehicles)
-            .Where(c => c.CustomerId == id)
-            .Select(c => new CustomerResponseDto
-            {
-                CustomerId = c.CustomerId,
-                UserId = c.UserId,
-                FullName = c.User.FirstName + " " + c.User.LastName,
-                Email = c.User.Email ?? "",
-                PhoneNumber = c.User.PhoneNumber ?? "",
-                Address = c.User.Address,
-
-                LoyaltyPoints = c.LoyaltyPoints,
-                TotalSpent = c.TotalSpent,
-                CreditBalance = c.CreditBalance,
-
-                Vehicles = c.Vehicles.Select(v => new VehicleResponseDto
-                {
-                    VehicleId = v.VehicleId,
-                    VehicleNumber = v.VehicleNumber,
-                    Brand = v.Brand,
-                    Model = v.Model,
-                    Color = v.Color,
-                    Year = v.Year
-                }).ToList()
-            })
-            .FirstOrDefaultAsync();
-    }
-
-    public async Task<Customer> CreateCustomer(CustomerCreateDto dto)
-    {
-        var customer = new Customer
+        public CustomerRepository(AppDbContext context)
         {
-            UserId = dto.UserId,
-            LoyaltyPoints = dto.LoyaltyPoints,
-            TotalSpent = dto.TotalSpent,
-            CreditBalance = dto.CreditBalance
-        };
+            _context = context;
+        }
 
-        _context.Customers.Add(customer);
-        await _context.SaveChangesAsync();
+        public async Task<Customer?> GetByIdWithUserAndVehiclesAsync(int customerId)
+        {
+            return await _context.Customers
+                .Include(c => c.User)
+                .Include(c => c.Vehicles)
+                .FirstOrDefaultAsync(c => c.CustomerId == customerId);
+        }
 
-        return customer;
+        public async Task<Customer?> GetByIdWithUserAsync(int customerId)
+        {
+            return await _context.Customers
+                .Include(c => c.User)
+                .FirstOrDefaultAsync(c => c.CustomerId == customerId);
+        }
+
+        public async Task<Customer?> GetByUserIdAsync(Guid userId)
+        {
+            return await _context.Customers
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+        }
+
+        public async Task<bool> ExistsAsync(int customerId)
+        {
+            return await _context.Customers.AnyAsync(c => c.CustomerId == customerId);
+        }
+
+        public async Task AddCustomerAsync(Customer customer)
+        {
+            await _context.Customers.AddAsync(customer);
+        }
+
+        public async Task AddVehicleAsync(Vehicle vehicle)
+        {
+            await _context.Vehicles.AddAsync(vehicle);
+        }
+
+        public async Task<Vehicle?> GetVehicleByIdAsync(int vehicleId)
+        {
+            return await _context.Vehicles.FindAsync(vehicleId);
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
     }
 }

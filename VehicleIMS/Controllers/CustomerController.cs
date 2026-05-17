@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using VehicleIMS.Application.DTOs;
-using VehicleIMS.Infrastructure.Repository;
+using VehicleIMS.Infrastructure.Repositories;
 
 namespace VehicleIMS.Controllers;
 
