@@ -1,6 +1,7 @@
 using VehicleIMS.Infrastructure;
 using VehicleIMS.Infrastructure.Data;
 using VehicleIMS.Infrastructure.Middleware;
+using System.Text.Json.Serialization;
 using VehicleIMS.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,7 +18,13 @@ builder.Services.AddCors(options =>
 });
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler =
+            System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
+
 builder.Services.AddOpenApi();
 
 builder.Services.AddEndpointsApiExplorer();
