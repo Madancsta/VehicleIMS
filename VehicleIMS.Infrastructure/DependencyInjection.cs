@@ -61,7 +61,13 @@ public static class DependencyInjection
         services.AddScoped<IReviewRepository, ReviewRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IStaffRepository, StaffRepository>();
+        services.AddScoped<IPartRepository, PartRepository>();
+        services.AddScoped<IPurchaseRepository, PurchaseRepository>();
+        services.AddScoped<IVendorRepository, VendorRepository>();
 
+        services.AddScoped<IVendorService, VendorService>();
+        services.AddScoped<IPurchaseService, PurchaseService>();
+        services.AddScoped<IPartService, PartService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IStaffService, StaffService>();
         services.AddScoped<ICustomerService, CustomerService>();
