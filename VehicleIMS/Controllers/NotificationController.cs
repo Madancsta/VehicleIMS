@@ -6,7 +6,7 @@ namespace VehicleIMS.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Roles = "Admin,Staff")]
+[Authorize(Roles = "Admin,Staff,Customer")]
 public class NotificationController : ControllerBase
 {
     private readonly INotificationService _notificationService;

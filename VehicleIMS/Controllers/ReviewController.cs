@@ -13,6 +13,7 @@ namespace VehicleIMS.Controllers
         private readonly IReviewService _reviewService;
         private readonly ICustomerRepository _customerRepository;
 
+        // Handles customer review API actions
         public ReviewController(
             IReviewService reviewService,
             ICustomerRepository customerRepository)
@@ -21,6 +22,7 @@ namespace VehicleIMS.Controllers
             _customerRepository = customerRepository;
         }
 
+        // Get the logged-in customer's ID from the JWT token
         private async Task<int?> GetCurrentCustomerIdAsync()
         {
             var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -34,6 +36,7 @@ namespace VehicleIMS.Controllers
             return customer?.CustomerId;
         }
 
+        // Get sales that the logged-in customer can review
         [Authorize(Roles = "Customer")]
         [HttpGet("my-reviewable-sales")]
         public async Task<IActionResult> GetMyReviewableSales()
@@ -49,6 +52,7 @@ namespace VehicleIMS.Controllers
             return Ok(sales);
         }
 
+        // Create a review for a completed sale
         [Authorize(Roles = "Customer")]
         [HttpPost]
         public async Task<IActionResult> CreateReview(ReviewDTO dto)
@@ -71,6 +75,7 @@ namespace VehicleIMS.Controllers
             }
         }
 
+        // Get reviews for a specific sale
         [HttpGet("sales/{salesId}")]
         public async Task<IActionResult> GetReviewsBySales(int salesId)
         {

@@ -5,18 +5,19 @@ using VehicleIMS.Application.Interfaces;
 
 namespace VehicleIMS.Controllers
 {
-
     [Route("api/bookings")]
     [ApiController]
     public class BookingController : ControllerBase
     {
         private readonly IBookingService _bookingService;
 
+        // Handles booking-related API requests
         public BookingController(IBookingService bookingService)
         {
             _bookingService = bookingService;
         }
 
+        // Get all bookings - only staff or admin can access
         [HttpGet]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> GetAllBookings()
@@ -32,7 +33,7 @@ namespace VehicleIMS.Controllers
             }
         }
 
-        // GET: api/bookings/customer/{customerId}
+        // Get bookings made by a specific customer
         [HttpGet("customer/{customerId:int}")]
         public async Task<IActionResult> GetBookingsByCustomer(int customerId)
         {
@@ -47,6 +48,7 @@ namespace VehicleIMS.Controllers
             }
         }
 
+        // Create a new booking
         [HttpPost]
         public async Task<IActionResult> CreateBooking(BookingDTO dto)
         {
@@ -61,6 +63,7 @@ namespace VehicleIMS.Controllers
             }
         }
 
+        // Get bookings for a specific vehicle
         [HttpGet("vehicle/{vehicleId}")]
         public async Task<IActionResult> GetVehicleBookings(int vehicleId)
         {
