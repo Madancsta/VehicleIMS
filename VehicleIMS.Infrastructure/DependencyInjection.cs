@@ -62,6 +62,8 @@ public static class DependencyInjection
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IStaffRepository, StaffRepository>();
 
+        services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IStaffService, StaffService>();
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<IBookingService, BookingService>();
         services.AddScoped<IRequestService, RequestService>();
