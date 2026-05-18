@@ -9,7 +9,6 @@ using VehicleIMS.Application.Interfaces;
 using VehicleIMS.Application.Services;
 using Microsoft.AspNetCore.Identity;
 using System.Text;
-using VehicleIMS.Infrastructure.Repository;
 
 namespace VehicleIMS.Infrastructure;
 
@@ -27,8 +26,10 @@ public static class DependencyInjection
             .AddDefaultTokenProviders();
 
         var jwtSettings = configuration.GetSection("JWT");
-        var key = Encoding.UTF8.GetBytes(jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT Secret not configured"));
-        
+        var key = Encoding.UTF8.GetBytes(
+            jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT Secret not configured")
+        );
+
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -39,6 +40,7 @@ public static class DependencyInjection
         {
             options.SaveToken = true;
             options.RequireHttpsMetadata = false;
+
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
@@ -54,16 +56,20 @@ public static class DependencyInjection
 
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<CustomerRepository>();
-        services.AddScoped<CustomerRepository>();
 
+        services.AddScoped<ICustomerRepository, VehicleIMS.Infrastructure.Repository.CustomerRepository>();
+        services.AddScoped<VehicleIMS.Infrastructure.Repository.CustomerRepository>();
+
+        services.AddScoped(typeof(IRepositoryBase<>), typeof(VehicleIMS.Infrastructure.Repositories.RepositoryBase<>));
+        services.AddScoped<IVehicleService, VehicleService>();
+        
         services.AddAuthorization(options =>
         {
             options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
             options.AddPolicy("StaffOrAdmin", policy => policy.RequireRole("Staff", "Admin"));
             options.AddPolicy("CustomerOrAdmin", policy => policy.RequireRole("Customer", "Admin"));
         });
-       
+
         return services;
     }
 }
