@@ -41,7 +41,7 @@ public class PartService(IPartRepository partRepository) : IPartService
         part.PartName = dto.PartName;
         part.PartCategoryId = dto.PartCategoryId;
         part.PartPrice = dto.PartPrice;
-
+   
 
         partRepository.Update(part);
         await partRepository.SaveChangesAsync();

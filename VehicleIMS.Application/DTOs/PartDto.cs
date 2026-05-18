@@ -16,7 +16,7 @@ public class CreatePartDto
     public string PartName { get; set; } = string.Empty;
     public int PartCategoryId { get; set; }
     public decimal PartPrice { get; set; }
-
+ 
 }
 
 public class UpdatePartDto

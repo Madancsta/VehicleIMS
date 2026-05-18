@@ -53,10 +53,15 @@ public class Sales
     // ── Navigation ───────────────────────────────────────────────────────────
     public ICollection<SalesItem> SalesItems { get; set; } = new List<SalesItem>();
     [ForeignKey(nameof(Booking))]
-    public int BookingId { get; set; }
-    public Booking Booking { get; set; }
+    public int? BookingId { get; set; }
+    public Booking? Booking { get; set; }
+
     [ForeignKey(nameof(Review))]
     public int? ReviewId { get; set; }
     public Review? Review { get; set; }
+
+    [ForeignKey(nameof(Vehicle))]
+    public int? VehicleId { get; set; }
+    public virtual Vehicle? Vehicle { get; set; }
 
 }

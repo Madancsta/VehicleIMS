@@ -20,7 +20,6 @@ public class SalesController : ControllerBase
     }
 
     // ── POST api/sales ────────────────────────────────────────────────────────
-    /// <summary>Create a new sale and generate an invoice.</summary>
     [HttpPost]
     public async Task<IActionResult> CreateSale([FromBody] CreateSalesDTO dto)
     {
@@ -42,7 +41,6 @@ public class SalesController : ControllerBase
     }
 
     // ── GET api/sales/{id} ────────────────────────────────────────────────────
-    /// <summary>Get a single sale by ID.</summary>
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetSaleById(int id)
     {
@@ -54,7 +52,6 @@ public class SalesController : ControllerBase
     }
 
     // ── GET api/sales/{id}/invoice ────────────────────────────────────────────
-    /// <summary>Get the full invoice summary for a sale.</summary>
     [HttpGet("{id:int}/invoice")]
     public async Task<IActionResult> GetInvoice(int id)
     {
@@ -66,7 +63,6 @@ public class SalesController : ControllerBase
     }
 
     // ── GET api/sales/customer/{customerId} ───────────────────────────────────
-    /// <summary>List all sales for a specific customer.</summary>
     [HttpGet("customer/{customerId:int}")]
     public async Task<IActionResult> GetSalesByCustomer(int customerId)
     {

@@ -4,7 +4,7 @@ using VehicleIMS.Domain.Entities;
 using VehicleIMS.Infrastructure.Data;
 using VehicleIMS.Infrastructure.Repositories;
 
-namespace VehicleIMS.Infrastructure.Repository;
+namespace VehicleIMS.Infrastructure.Repositories;
 
 public class SalesRepository(AppDbContext context)
     : RepositoryBase<Sales>(context), ISalesRepository
@@ -14,6 +14,9 @@ public class SalesRepository(AppDbContext context)
         return await Context.Sales
             .Include(s => s.Customer).ThenInclude(c => c.User)
             .Include(s => s.Service)
+            .Include(s => s.Vehicle)
+            .Include(s => s.Booking)
+                .ThenInclude(b => b.Vehicle)
             .Include(s => s.SalesItems).ThenInclude(si => si.Part)
             .FirstOrDefaultAsync(s => s.SalesId == salesId);
     }
@@ -23,6 +26,7 @@ public class SalesRepository(AppDbContext context)
         return await Context.Sales
             .Where(s => s.CustomerId == customerId)
             .Include(s => s.Customer).ThenInclude(c => c.User)
+            .Include(s => s.Vehicle)
             .Include(s => s.Service)
             .Include(s => s.SalesItems).ThenInclude(si => si.Part)
             .OrderByDescending(s => s.SalesDate)

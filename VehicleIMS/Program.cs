@@ -1,33 +1,35 @@
 using VehicleIMS.Infrastructure;
 using VehicleIMS.Infrastructure.Data;
 using VehicleIMS.Infrastructure.Middleware;
+using System.Text.Json.Serialization;
 using VehicleIMS.Infrastructure.Repositories;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend", policy =>
-    {
-        policy
-            .WithOrigins("http://localhost:5173")
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-    });
-});
-
 // Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler =
+            System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 
+builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Register infrastructure (DbContext + Identity)
-builder.Services.AddInfrastructure(builder.Configuration);
-//builder.Services.AddScoped<IPartRepository, PartRepository>();
-//builder.Services.AddScoped<IPartService, PartService>();
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
 
+// Register infrastructure (DbContext + Identity + all repositories and services)
+builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
@@ -55,12 +57,8 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-
-    // Optional: Apply migrations or ensure database is created
     var dbContext = services.GetRequiredService<AppDbContext>();
-    await dbContext.Database.EnsureCreatedAsync(); // or .MigrateAsync()
-
-    // Seed admin user
+    await dbContext.Database.EnsureCreatedAsync();
     await DBSeeder.SeedAsync(services);
 }
 

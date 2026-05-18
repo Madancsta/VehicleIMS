@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VehicleIMS.Application.DTOs;
 using VehicleIMS.Application.Interfaces;
 
@@ -14,6 +15,36 @@ namespace VehicleIMS.Controllers
         public BookingController(IBookingService bookingService)
         {
             _bookingService = bookingService;
+        }
+
+        [HttpGet]
+        [Authorize(Policy = "StaffOrAdmin")]
+        public async Task<IActionResult> GetAllBookings()
+        {
+            try
+            {
+                var bookings = await _bookingService.GetAllBookingsAsync();
+                return Ok(bookings);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error retrieving bookings: {ex.Message}" });
+            }
+        }
+
+        // GET: api/bookings/customer/{customerId}
+        [HttpGet("customer/{customerId:int}")]
+        public async Task<IActionResult> GetBookingsByCustomer(int customerId)
+        {
+            try
+            {
+                var bookings = await _bookingService.GetBookingsByCustomerAsync(customerId);
+                return Ok(bookings);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error retrieving customer bookings: {ex.Message}" });
+            }
         }
 
         [HttpPost]

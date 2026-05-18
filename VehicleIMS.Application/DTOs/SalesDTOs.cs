@@ -15,6 +15,8 @@ public class CreateSalesDTO
 
     public int? VehicleId { get; set; }
 
+    public int? BookingId { get; set; }
+
     [Required]
     [MinLength(1, ErrorMessage = "At least one item is required unless a service is selected.")]
     public List<SalesItemDTO> Items { get; set; } = new();
@@ -44,6 +46,7 @@ public class SalesResponseDTO
     public int CustomerId { get; set; }
     public string CustomerName { get; set; } = string.Empty;
     public string? CustomerEmail { get; set; }
+    public int? BookingId { get; set; }
     public int? VehicleId { get; set; }
     public string? VehicleInfo { get; set; }  // e.g. "Toyota Corolla (2020)"
     public int? ServiceId { get; set; }

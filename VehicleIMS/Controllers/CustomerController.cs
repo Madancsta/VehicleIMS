@@ -21,6 +21,22 @@ public class CustomerController : ControllerBase
         _customerRepository = customerRepository;
     }
 
+    [Authorize(Roles = "Admin,Staff")]
+    [HttpGet]
+    public async Task<IActionResult> GetAllCustomers()
+    {
+        try
+        {
+            var customers = await _customerService.GetAllCustomersAsync();
+            return Ok(customers);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = $"Error retrieving customers: {ex.Message}" });
+        }
+    }
+
+
     [HttpPost("register")]
     public async Task<IActionResult> Register(CustomerRegisterDTO dto)
     {
@@ -34,6 +50,7 @@ public class CustomerController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
+
 
     [Authorize(Roles = "Customer")]
     [HttpGet("{customerId}/profile")]
