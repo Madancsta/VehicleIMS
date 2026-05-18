@@ -7,7 +7,7 @@ namespace VehicleIMS.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Policy = "StaffOrAdmin")]
+//[Authorize(Policy = "StaffOrAdmin")]
 public class SalesController : ControllerBase
 {
     private readonly ISalesService _salesService;

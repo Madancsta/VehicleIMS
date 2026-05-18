@@ -152,17 +152,18 @@ namespace VehicleIMS.Application.Services
                 };
             }
 
-            // Generate tokens
+            // Get roles
             var roles = await _userManager.GetRolesAsync(user);
 
+            // Get customer ID if user is a customer
             int? customerId = null;
-
             if (roles.Contains("Customer"))
             {
                 var customer = await _customerRepository.GetByUserIdAsync(user.Id);
                 customerId = customer?.CustomerId;
             }
 
+            // Generate tokens
             var accessToken = _jwtService.GenerateAccessToken(user, roles);
             var refreshToken = _jwtService.GenerateRefreshToken();
 
@@ -183,8 +184,8 @@ namespace VehicleIMS.Application.Services
                 UserId = user.Id.ToString(),
                 Email = user.Email,
                 UserName = user.UserName,
-                Roles = roles.ToList(),
-                CustomerId = customerId
+                Roles = roles.ToList(),      
+                CustomerId = customerId      
             };
         }
 
@@ -250,7 +251,6 @@ namespace VehicleIMS.Application.Services
                 var roles = await _userManager.GetRolesAsync(user);
 
                 int? customerId = null;
-
                 if (roles.Contains("Customer"))
                 {
                     var customer = await _customerRepository.GetByUserIdAsync(user.Id);

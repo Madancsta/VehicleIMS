@@ -59,6 +59,7 @@ public static class DependencyInjection
         services.AddScoped<IRequestRepository, RequestRepository>();
         services.AddScoped<IReviewRepository, ReviewRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<IStaffRepository, StaffRepository>();
 
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<IBookingService, BookingService>();
@@ -77,18 +78,7 @@ public static class DependencyInjection
         services.AddScoped<IVehicleService, VehicleService>();
         services.AddScoped<IEmailService, EmailService>();
 
-        services.AddScoped<IStaffService, StaffService>();
-        services.AddScoped<INotificationService, NotificationService>();
-        services.AddScoped<ICustomerService, CustomerService>();
-        services.AddScoped<IBookingService, BookingService>();
-        services.AddScoped<IRequestService, RequestService>();
-        services.AddScoped<IReviewService, ReviewService>();
-        services.AddAuthorization(options =>
-        {
-            options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
-            options.AddPolicy("StaffOrAdmin", policy => policy.RequireRole("Staff", "Admin"));
-            options.AddPolicy("CustomerOrAdmin", policy => policy.RequireRole("Customer", "Admin"));
-        });
+
 
         //Parts Management
         services.AddScoped<IPartRepository, PartRepository>();
