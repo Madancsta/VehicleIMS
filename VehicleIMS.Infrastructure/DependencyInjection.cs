@@ -1,15 +1,18 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using VehicleIMS.Domain.Entities;
+using VehicleIMS.Infrastructure.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using VehicleIMS.Application.Interfaces;
 using VehicleIMS.Application.Services;
 using VehicleIMS.Domain.Entities;
 using VehicleIMS.Infrastructure.Data;
+using Microsoft.AspNetCore.Identity;
 using VehicleIMS.Infrastructure.Repositories;
+using VehicleIMS.Infrastructure.Repository;
+using System.Text;
 
 namespace VehicleIMS.Infrastructure;
 
@@ -60,7 +63,9 @@ public static class DependencyInjection
         services.AddScoped<IReviewRepository, ReviewRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IStaffRepository, StaffRepository>();
+        services.AddScoped<IServiceRepository, ServiceRepository>();
 
+        services.AddScoped<IServiceService, ServiceService>();
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<IBookingService, BookingService>();
         services.AddScoped<IRequestService, RequestService>();

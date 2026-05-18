@@ -22,5 +22,20 @@ namespace VehicleIMS.Application.DTOs
         [Required]
         public string ServiceDescription { get; set; } = string.Empty;
     }
+    public class BookingResponseDTO
+    {
+        public int BookingId { get; set; }
+        public int VehicleId { get; set; }
+        public string? VehicleInfo { get; set; }
+        public int? CustomerId { get; set; }
+        public string? CustomerName { get; set; }
+        public string? CustomerEmail { get; set; }
+        public string? CustomerPhone { get; set; }
+        public string ServiceType { get; set; } = string.Empty;
+        public string ServiceDescription { get; set; } = string.Empty;
+        public DateTime BookingDate { get; set; }
+        public TimeSpan BookingTime { get; set; }
+        public string BookingStatus { get; set; } = string.Empty;
+    }
 
 }

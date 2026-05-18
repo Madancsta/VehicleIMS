@@ -60,4 +60,8 @@ public class Sales
     public int? ReviewId { get; set; }
     public Review? Review { get; set; }
 
+    [ForeignKey(nameof(Vehicle))]
+    public int? VehicleId { get; set; }
+    public virtual Vehicle? Vehicle { get; set; }
+
 }

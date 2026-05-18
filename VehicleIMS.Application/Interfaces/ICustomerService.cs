@@ -7,6 +7,7 @@ namespace VehicleIMS.Application.Interfaces
 {
     public interface ICustomerService
     {
+        Task<List<CustomerResponseDto>> GetAllCustomersAsync();
         Task<AuthResponseDTO> RegisterAsync(CustomerRegisterDTO dto);
         Task<CustomerProfileDTO?> GetProfileAsync(int customerId);
         Task<bool> UpdateProfileAsync(int customerId, CustomerProfileUpdateDTO dto);

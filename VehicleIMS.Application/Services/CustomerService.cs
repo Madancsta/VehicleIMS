@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using VehicleIMS.Application.DTOs;
 using VehicleIMS.Application.Interfaces;
@@ -9,6 +10,7 @@ namespace VehicleIMS.Application.Services;
 public class CustomerService : ICustomerService
 {
     private readonly ICustomerRepository _customerRepository;
+    private readonly IRepositoryBase<Customer> _customerRepo;
     private readonly UserManager<Users> _userManager;
     private readonly RoleManager<Role> _roleManager;
     private readonly IJwtService _jwtService;
@@ -16,17 +18,42 @@ public class CustomerService : ICustomerService
 
     public CustomerService(
         ICustomerRepository customerRepository,
+        IRepositoryBase<Customer> customerRepo,
         UserManager<Users> userManager,
         RoleManager<Role> roleManager,
         IJwtService jwtService,
         IConfiguration configuration)
     {
         _customerRepository = customerRepository;
+        _customerRepo = customerRepo;
         _userManager = userManager;
         _roleManager = roleManager;
         _jwtService = jwtService;
         _configuration = configuration;
     }
+
+    public async Task<List<CustomerResponseDto>> GetAllCustomersAsync()
+    {
+        var customers = await _customerRepo
+            .FindAll(trackChanges: false)
+            .Include(c => c.User)
+            .OrderBy(c => c.User.FirstName)
+            .ToListAsync();
+
+        return customers.Select(c => new CustomerResponseDto
+        {
+            CustomerId = c.CustomerId,
+            UserId = c.UserId,
+            FirstName = c.User.FirstName,
+            LastName = c.User.LastName,
+            Email = c.User.Email,
+            PhoneNumber = c.User.PhoneNumber,
+            Address = c.User.Address,
+            Status = c.User.Status,
+            CreatedAt = c.User.CreatedAt
+        }).ToList();
+    }
+
 
     public async Task<AuthResponseDTO> RegisterAsync(CustomerRegisterDTO dto)
     {

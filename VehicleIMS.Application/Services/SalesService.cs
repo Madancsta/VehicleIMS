@@ -209,10 +209,12 @@ public class SalesService : ISalesService
         CustomerName = $"{s.Customer.User.FirstName} {s.Customer.User.LastName}",
         CustomerEmail = s.Customer.User.Email,
         BookingId = s.BookingId,
-        VehicleId = s.Booking?.VehicleId,
-        VehicleInfo = s.Booking?.Vehicle != null
-        ? $"{s.Booking.Vehicle.Brand} {s.Booking.Vehicle.Model} ({s.Booking.Vehicle.Year})"
-        : null,
+        VehicleId = s.VehicleId ?? s.Booking?.VehicleId,
+        VehicleInfo = s.Vehicle != null
+            ? $"{s.Vehicle.Brand} {s.Vehicle.Model} ({s.Vehicle.Year})"
+            : (s.Booking?.Vehicle != null
+                ? $"{s.Booking.Vehicle.Brand} {s.Booking.Vehicle.Model} ({s.Booking.Vehicle.Year})"
+                : null),
         ServiceId = s.ServiceId,
         ServiceType = s.Service?.ServiceType,
         VehicleType = s.Service?.VehicleType.ToString(),

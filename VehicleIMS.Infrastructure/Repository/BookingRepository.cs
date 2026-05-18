@@ -40,6 +40,19 @@ namespace VehicleIMS.Infrastructure.Repositories
                 .FirstOrDefaultAsync(b => b.BookingId == bookingId);
         }
 
+        // Get all bookings for a specific customer
+        public async Task<List<Booking>> GetBookingsByCustomerAsync(int customerId)
+        {
+            return await _context.Bookings
+                .Include(b => b.Vehicle)
+                    .ThenInclude(v => v.Customer)
+                        .ThenInclude(c => c.User)
+                .Where(b => b.Vehicle.CustomerId == customerId)
+                .OrderByDescending(b => b.BookingDate)
+                .ThenByDescending(b => b.BookingTime)
+                .ToListAsync();
+        }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();

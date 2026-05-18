@@ -448,6 +448,9 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Property<int?>("ServiceId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("VehicleId")
+                        .HasColumnType("integer");
+
                     b.HasKey("SalesId");
 
                     b.HasIndex("BookingId");
@@ -460,6 +463,8 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.HasIndex("ReviewId");
 
                     b.HasIndex("ServiceId");
+
+                    b.HasIndex("VehicleId");
 
                     b.ToTable("Sales");
                 });
@@ -878,6 +883,10 @@ namespace VehicleIMS.Infrastructure.Migrations
                         .HasForeignKey("ServiceId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("VehicleIMS.Domain.Entities.Vehicle", "Vehicle")
+                        .WithMany()
+                        .HasForeignKey("VehicleId");
+
                     b.Navigation("Booking");
 
                     b.Navigation("Customer");
@@ -885,6 +894,8 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Navigation("Review");
 
                     b.Navigation("Service");
+
+                    b.Navigation("Vehicle");
                 });
 
             modelBuilder.Entity("VehicleIMS.Domain.Entities.SalesItem", b =>

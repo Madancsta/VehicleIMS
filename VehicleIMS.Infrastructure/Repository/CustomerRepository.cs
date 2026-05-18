@@ -57,7 +57,6 @@ namespace VehicleIMS.Infrastructure.Repositories
         {
             return await _context.Vehicles.FindAsync(vehicleId);
         }
-
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
