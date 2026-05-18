@@ -365,7 +365,8 @@ namespace VehicleIMS.Infrastructure.Migrations
 
                     b.HasKey("ReviewId");
 
-                    b.HasIndex("SalesId");
+                    b.HasIndex("SalesId")
+                        .IsUnique();
 
                     b.ToTable("Reviews");
                 });
@@ -433,9 +434,6 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Property<int>("PaymentStatus")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("ReviewId")
-                        .HasColumnType("integer");
-
                     b.Property<decimal>("SalesAmount")
                         .HasColumnType("decimal(18,2)");
 
@@ -459,8 +457,6 @@ namespace VehicleIMS.Infrastructure.Migrations
 
                     b.HasIndex("InvoiceNumber")
                         .IsUnique();
-
-                    b.HasIndex("ReviewId");
 
                     b.HasIndex("ServiceId");
 
@@ -854,8 +850,8 @@ namespace VehicleIMS.Infrastructure.Migrations
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Review", b =>
                 {
                     b.HasOne("VehicleIMS.Domain.Entities.Sales", "Sales")
-                        .WithMany()
-                        .HasForeignKey("SalesId")
+                        .WithOne("Review")
+                        .HasForeignKey("VehicleIMS.Domain.Entities.Review", "SalesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -874,10 +870,6 @@ namespace VehicleIMS.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VehicleIMS.Domain.Entities.Review", "Review")
-                        .WithMany()
-                        .HasForeignKey("ReviewId");
-
                     b.HasOne("VehicleIMS.Domain.Entities.Service", "Service")
                         .WithMany()
                         .HasForeignKey("ServiceId")
@@ -890,8 +882,6 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.Navigation("Booking");
 
                     b.Navigation("Customer");
-
-                    b.Navigation("Review");
 
                     b.Navigation("Service");
 
@@ -983,6 +973,8 @@ namespace VehicleIMS.Infrastructure.Migrations
 
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Sales", b =>
                 {
+                    b.Navigation("Review");
+
                     b.Navigation("SalesItems");
                 });
 #pragma warning restore 612, 618
