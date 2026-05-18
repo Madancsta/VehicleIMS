@@ -59,9 +59,10 @@ public class SalesService : ISalesService
         }
 
         // Validate Booking if provided
+        Booking? booking = null;
         if (dto.BookingId.HasValue && dto.BookingId.Value > 0)
         {
-            var booking = await _bookingRepo.GetByIdWithDetailsAsync(dto.BookingId.Value);
+            booking = await _bookingRepo.GetByIdWithDetailsAsync(dto.BookingId.Value);
             if (booking == null)
             {
                 throw new KeyNotFoundException($"Booking {dto.BookingId} not found.");
@@ -127,6 +128,11 @@ public class SalesService : ISalesService
 
         _salesRepo.Create(sale);
         await _salesRepo.SaveChangesAsync();
+        if (booking != null)
+        {
+            booking.BookingStatus = BookingStatus.Completed;
+            await _bookingRepo.SaveChangesAsync();
+        }
 
         // Reload with details for response
         var created = await _salesRepo.GetByIdWithDetailsAsync(sale.SalesId)

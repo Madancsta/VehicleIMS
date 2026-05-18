@@ -65,6 +65,7 @@ public static class DependencyInjection
         services.AddScoped<IStaffRepository, StaffRepository>();
         services.AddScoped<IServiceRepository, ServiceRepository>();
 
+        services.AddScoped<IStaffService, StaffService>();
         services.AddScoped<IServiceService, ServiceService>();
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<IBookingService, BookingService>();
