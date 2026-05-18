@@ -13,6 +13,7 @@ public class CustomerController : ControllerBase
     private readonly ICustomerService _customerService;
     private readonly ICustomerRepository _customerRepository;
 
+    // Handles customer registration, profile, and vehicle API requests
     public CustomerController(
         ICustomerService customerService,
         ICustomerRepository customerRepository)
@@ -21,6 +22,7 @@ public class CustomerController : ControllerBase
         _customerRepository = customerRepository;
     }
 
+    // Get all customers - only admin or staff can access
     [Authorize(Roles = "Admin,Staff")]
     [HttpGet]
     public async Task<IActionResult> GetAllCustomers()
@@ -36,7 +38,7 @@ public class CustomerController : ControllerBase
         }
     }
 
-
+    // Register a new customer
     [HttpPost("register")]
     public async Task<IActionResult> Register(CustomerRegisterDTO dto)
     {
@@ -51,7 +53,7 @@ public class CustomerController : ControllerBase
         }
     }
 
-
+    // Get logged-in customer's profile
     [Authorize(Roles = "Customer")]
     [HttpGet("{customerId}/profile")]
     public async Task<IActionResult> GetProfile(int customerId)
@@ -71,6 +73,7 @@ public class CustomerController : ControllerBase
         return Ok(profile);
     }
 
+    // Update logged-in customer's profile
     [Authorize(Roles = "Customer")]
     [HttpPut("{customerId}/profile")]
     public async Task<IActionResult> UpdateProfile(int customerId, CustomerProfileUpdateDTO dto)
@@ -90,6 +93,7 @@ public class CustomerController : ControllerBase
         return Ok("Profile updated successfully.");
     }
 
+    // Add a vehicle for the logged-in customer
     [Authorize(Roles = "Customer")]
     [HttpPost("{customerId}/vehicles")]
     public async Task<IActionResult> AddVehicle(int customerId, VehicleCreateUpdateDTO dto)
@@ -109,6 +113,7 @@ public class CustomerController : ControllerBase
         return Ok(vehicle);
     }
 
+    // Update a vehicle owned by the logged-in customer
     [Authorize(Roles = "Customer")]
     [HttpPut("{customerId}/vehicles/{vehicleId}")]
     public async Task<IActionResult> UpdateVehicle(
@@ -131,6 +136,7 @@ public class CustomerController : ControllerBase
         return Ok("Vehicle updated successfully.");
     }
 
+    // Check if the logged-in user owns the selected customer profile
     private async Task<bool> IsOwnCustomer(int customerId)
     {
         var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

@@ -103,8 +103,14 @@ public class SalesService : ISalesService
         decimal serviceCharge = service != null ? (decimal)service.ServiceCharge : 0m;
         decimal subtotal = partsTotal + serviceCharge;
 
-        // 10% loyalty discount
-        decimal discount = Math.Round(subtotal * 0.10m, 2);
+        // Loyalty Program: 10% discount only when single purchase is more than 5000
+        decimal discount = 0m;
+
+        if (subtotal > 5000m)
+        {
+            discount = Math.Round(subtotal * 0.10m, 2);
+        }
+
         decimal total = subtotal - discount;
 
         // Generate invoice number
