@@ -13,19 +13,22 @@ public class SalesService : ISalesService
     private readonly IRepositoryBase<Customer> _customerRepo;
     private readonly IRepositoryBase<Service> _serviceRepo;
     private readonly IRepositoryBase<Vehicle> _vehicleRepo;
+    private readonly IBookingRepository _bookingRepo;
 
     public SalesService(
         ISalesRepository salesRepo,
         IRepositoryBase<Part> partRepo,
         IRepositoryBase<Customer> customerRepo,
         IRepositoryBase<Service> serviceRepo,
-        IRepositoryBase<Vehicle> vehicleRepo)
+        IRepositoryBase<Vehicle> vehicleRepo,
+        IBookingRepository bookingRepo)
     {
         _salesRepo = salesRepo;
         _partRepo = partRepo;
         _customerRepo = customerRepo;
         _serviceRepo = serviceRepo;
         _vehicleRepo = vehicleRepo;
+        _bookingRepo = bookingRepo;
     }
 
     // ── Create Sale ──────────────────────────────────────────────────────────
@@ -36,7 +39,7 @@ public class SalesService : ISalesService
         var customer = await _customerRepo.GetByIdAsync(dto.CustomerId)
             ?? throw new KeyNotFoundException($"Customer {dto.CustomerId} not found.");
 
-        // Validate service (optional)
+        // Validate service 
         Service? service = null;
         if (dto.ServiceId.HasValue)
         {
@@ -44,7 +47,7 @@ public class SalesService : ISalesService
                 ?? throw new KeyNotFoundException($"Service {dto.ServiceId} not found.");
         }
 
-        // Validate vehicle (optional)
+        // Validate vehicle
         Vehicle? vehicle = null;
         if (dto.VehicleId.HasValue)
         {
@@ -53,6 +56,16 @@ public class SalesService : ISalesService
 
             if (vehicle.CustomerId != dto.CustomerId)
                 throw new InvalidOperationException("Vehicle does not belong to this customer.");
+        }
+
+        // Validate Booking if provided
+        if (dto.BookingId.HasValue && dto.BookingId.Value > 0)
+        {
+            var booking = await _bookingRepo.GetByIdWithDetailsAsync(dto.BookingId.Value);
+            if (booking == null)
+            {
+                throw new KeyNotFoundException($"Booking {dto.BookingId} not found.");
+            }
         }
 
         // Must have at least items OR a service
@@ -102,6 +115,7 @@ public class SalesService : ISalesService
             InvoiceNumber = invoiceNumber,
             CustomerId = dto.CustomerId,
             ServiceId = dto.ServiceId,
+            BookingId = dto.BookingId.HasValue && dto.BookingId.Value > 0 ? dto.BookingId.Value : (int?)null,
             PartsTotal = partsTotal,
             ServiceCharge = serviceCharge,
             Discount = discount,
@@ -176,6 +190,8 @@ public class SalesService : ISalesService
             .FindAll()
             .Include(s => s.Customer).ThenInclude(c => c.User)
             .Include(s => s.Service)
+            .Include(s => s.Booking)
+                .ThenInclude(b => b.Vehicle)
             .Include(s => s.SalesItems).ThenInclude(si => si.Part)
             .ToListAsync();
 
@@ -192,6 +208,11 @@ public class SalesService : ISalesService
         CustomerId = s.CustomerId,
         CustomerName = $"{s.Customer.User.FirstName} {s.Customer.User.LastName}",
         CustomerEmail = s.Customer.User.Email,
+        BookingId = s.BookingId,
+        VehicleId = s.Booking?.VehicleId,
+        VehicleInfo = s.Booking?.Vehicle != null
+        ? $"{s.Booking.Vehicle.Brand} {s.Booking.Vehicle.Model} ({s.Booking.Vehicle.Year})"
+        : null,
         ServiceId = s.ServiceId,
         ServiceType = s.Service?.ServiceType,
         VehicleType = s.Service?.VehicleType.ToString(),

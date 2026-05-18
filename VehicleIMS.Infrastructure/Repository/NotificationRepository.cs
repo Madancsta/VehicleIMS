@@ -3,7 +3,7 @@ using VehicleIMS.Application.DTOs;
 using VehicleIMS.Application.Interfaces;
 using VehicleIMS.Infrastructure.Data;
 
-namespace VehicleIMS.Infrastructure.Repository;
+namespace VehicleIMS.Infrastructure.Repositories;
 
 public class NotificationRepository : INotificationRepository
 {

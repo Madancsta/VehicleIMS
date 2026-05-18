@@ -9,6 +9,7 @@ namespace VehicleIMS.Application.Interfaces
         Task AddBookingAsync(Booking booking);
 
         Task<List<Booking>> GetBookingsByVehicleIdAsync(int vehicleId);
+        Task<Booking?> GetByIdWithDetailsAsync(int bookingId);
 
         Task SaveChangesAsync();
     }

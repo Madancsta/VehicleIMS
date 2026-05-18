@@ -408,7 +408,7 @@ namespace VehicleIMS.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SalesId"));
 
-                    b.Property<int>("BookingId")
+                    b.Property<int?>("BookingId")
                         .HasColumnType("integer");
 
                     b.Property<int>("CustomerId")
@@ -861,9 +861,7 @@ namespace VehicleIMS.Infrastructure.Migrations
                 {
                     b.HasOne("VehicleIMS.Domain.Entities.Booking", "Booking")
                         .WithMany()
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("BookingId");
 
                     b.HasOne("VehicleIMS.Domain.Entities.Customer", "Customer")
                         .WithMany()

@@ -55,7 +55,7 @@ namespace VehicleIMS.Application.Services
             return sales.Select(s => new ReviewableSaleDTO
             {
                 SalesId = s.SalesId,
-                BookingId = s.BookingId,
+                BookingId = s.BookingId ?? 0,
                 ServiceType = s.Booking.ServiceType,
                 VehicleNumber = s.Booking.Vehicle.VehicleNumber,
                 SalesDate = s.SalesDate,

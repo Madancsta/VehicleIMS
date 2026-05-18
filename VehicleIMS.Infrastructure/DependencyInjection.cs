@@ -10,7 +10,6 @@ using VehicleIMS.Application.Services;
 using VehicleIMS.Domain.Entities;
 using VehicleIMS.Infrastructure.Data;
 using VehicleIMS.Infrastructure.Repositories;
-using VehicleIMS.Infrastructure.Repository;
 
 namespace VehicleIMS.Infrastructure;
 
@@ -90,6 +89,19 @@ public static class DependencyInjection
             options.AddPolicy("StaffOrAdmin", policy => policy.RequireRole("Staff", "Admin"));
             options.AddPolicy("CustomerOrAdmin", policy => policy.RequireRole("Customer", "Admin"));
         });
+
+        //Parts Management
+        services.AddScoped<IPartRepository, PartRepository>();
+        services.AddScoped<IPartService, PartService>();
+
+        //Purchase Invoice
+        services.AddScoped<IPurchaseRepository, PurchaseRepository>();
+        services.AddScoped<IPurchaseService, PurchaseService>();
+
+
+        // Vendor
+        services.AddScoped<IVendorRepository, VendorRepository>();
+        services.AddScoped<IVendorService, VendorService>();
 
         return services;
     }
