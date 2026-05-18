@@ -55,6 +55,8 @@ public static class DependencyInjection
             };
         });
 
+        services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
+        services.AddScoped<ISalesRepository, SalesRepository>();
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
@@ -63,46 +65,35 @@ public static class DependencyInjection
         services.AddScoped<IReviewRepository, ReviewRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IStaffRepository, StaffRepository>();
+        services.AddScoped<IServiceRepository, ServiceRepository>();
         services.AddScoped<IPartRepository, PartRepository>();
         services.AddScoped<IPurchaseRepository, PurchaseRepository>();
         services.AddScoped<IVendorRepository, VendorRepository>();
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
 
+        services.AddScoped<IStaffDashboardService, StaffDashboardService>();
+        services.AddScoped<IAdminDashboardService, AdminDashboardService>();
         services.AddScoped<IVendorService, VendorService>();
-        services.AddScoped<IPurchaseService, PurchaseService>();
         services.AddScoped<IPartService, PartService>();
+        services.AddScoped<IPurchaseService, PurchaseService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IStaffService, StaffService>();
+        services.AddScoped<IServiceService, ServiceService>();
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<IBookingService, BookingService>();
         services.AddScoped<IRequestService, RequestService>();
         services.AddScoped<IReviewService, ReviewService>();
+        services.AddScoped<ISalesService, SalesService>();
+        services.AddScoped<IVehicleService, VehicleService>();
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<IVehicleService, VehicleService>();
+        
         services.AddAuthorization(options =>
         {
             options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
             options.AddPolicy("StaffOrAdmin", policy => policy.RequireRole("Staff", "Admin"));
             options.AddPolicy("CustomerOrAdmin", policy => policy.RequireRole("Customer", "Admin"));
         });
-
-        services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
-        services.AddScoped<ISalesRepository, SalesRepository>();
-        services.AddScoped<ISalesService, SalesService>();
-        services.AddScoped<IVehicleService, VehicleService>();
-        services.AddScoped<IEmailService, EmailService>();
-
-
-
-        //Parts Management
-        services.AddScoped<IPartRepository, PartRepository>();
-        services.AddScoped<IPartService, PartService>();
-
-        //Purchase Invoice
-        services.AddScoped<IPurchaseRepository, PurchaseRepository>();
-        services.AddScoped<IPurchaseService, PurchaseService>();
-
-
-        // Vendor
-        services.AddScoped<IVendorRepository, VendorRepository>();
-        services.AddScoped<IVendorService, VendorService>();
 
         return services;
     }

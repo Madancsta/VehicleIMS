@@ -8,6 +8,7 @@ namespace VehicleIMS.API.Controllers;
 [Route("api/[controller]")]
 public class PartCategoryController(AppDbContext context) : ControllerBase
 {
+    // Get all part categories
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {

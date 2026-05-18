@@ -59,9 +59,10 @@ public class SalesService : ISalesService
         }
 
         // Validate Booking if provided
+        Booking? booking = null;
         if (dto.BookingId.HasValue && dto.BookingId.Value > 0)
         {
-            var booking = await _bookingRepo.GetByIdWithDetailsAsync(dto.BookingId.Value);
+            booking = await _bookingRepo.GetByIdWithDetailsAsync(dto.BookingId.Value);
             if (booking == null)
             {
                 throw new KeyNotFoundException($"Booking {dto.BookingId} not found.");
@@ -103,8 +104,14 @@ public class SalesService : ISalesService
         decimal serviceCharge = service != null ? (decimal)service.ServiceCharge : 0m;
         decimal subtotal = partsTotal + serviceCharge;
 
-        // 10% loyalty discount
-        decimal discount = Math.Round(subtotal * 0.10m, 2);
+        // Loyalty Program: 10% discount only when single purchase is more than 5000
+        decimal discount = 0m;
+
+        if (subtotal > 5000m)
+        {
+            discount = Math.Round(subtotal * 0.10m, 2);
+        }
+
         decimal total = subtotal - discount;
 
         // Generate invoice number
@@ -127,6 +134,11 @@ public class SalesService : ISalesService
 
         _salesRepo.Create(sale);
         await _salesRepo.SaveChangesAsync();
+        if (booking != null)
+        {
+            booking.BookingStatus = BookingStatus.Completed;
+            await _bookingRepo.SaveChangesAsync();
+        }
 
         // Reload with details for response
         var created = await _salesRepo.GetByIdWithDetailsAsync(sale.SalesId)

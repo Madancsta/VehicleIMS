@@ -56,8 +56,6 @@ public class Sales
     public int? BookingId { get; set; }
     public Booking? Booking { get; set; }
 
-    [ForeignKey(nameof(Review))]
-    public int? ReviewId { get; set; }
     public Review? Review { get; set; }
 
     [ForeignKey(nameof(Vehicle))]
