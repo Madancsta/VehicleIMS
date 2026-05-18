@@ -34,14 +34,7 @@ namespace VehicleIMS.Infrastructure.Repository
             var customerVehicleIds = customerVehicles
                 .Select(v => v.VehicleId)
                 .ToList();
-
-            /*
-             * For now, Bookings/Sales/Reviews are empty because your current AppDbContext
-             * does not have bridge tables like BookingVehicles, SalesBookings, ReviewVehicles.
-             *
-             * Once those entities exist, we can connect them properly.
-             */
-
+            
             var bookings = new List<CustomerBookingHistoryDTO>();
 
             var sales = new List<CustomerSalesHistoryDTO>();

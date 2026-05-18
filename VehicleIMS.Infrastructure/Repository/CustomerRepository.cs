@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using VehicleIMS.Application.DTOs;
 using VehicleIMS.Application.Interfaces;
 using VehicleIMS.Domain.Entities;
 using VehicleIMS.Infrastructure.Data;
 
-namespace VehicleIMS.Infrastructure.Repositories
+namespace VehicleIMS.Infrastructure.Repository
 {
     public class CustomerRepository : ICustomerRepository
     {
@@ -15,6 +13,56 @@ namespace VehicleIMS.Infrastructure.Repositories
         public CustomerRepository(AppDbContext context)
         {
             _context = context;
+        }
+
+        public async Task<List<Customer>> GetAllCustomers()
+        {
+            return await _context.Customers
+                .Include(c => c.User)
+                .Include(c => c.Vehicles)
+                .ToListAsync();
+        }
+
+        public async Task<List<Customer>> SearchCustomersAsync(string query)
+        {
+            query = query.ToLower();
+
+            return await _context.Customers
+                .Include(c => c.User)
+                .Include(c => c.Vehicles)
+                .Where(c =>
+                    c.CustomerId.ToString().Contains(query) ||
+                    c.FirstName.ToLower().Contains(query) ||
+                    c.LastName.ToLower().Contains(query) ||
+                    (c.FirstName + " " + c.LastName).ToLower().Contains(query) ||
+                    (c.User.PhoneNumber != null && c.User.PhoneNumber.Contains(query)) ||
+                    c.Vehicles.Any(v => v.VehicleNumber.ToLower().Contains(query))
+                )
+                .ToListAsync();
+        }
+
+        public async Task<Customer?> GetCustomerById(int id)
+        {
+            return await _context.Customers
+                .Include(c => c.User)
+                .Include(c => c.Vehicles)
+                .FirstOrDefaultAsync(c => c.CustomerId == id);
+        }
+
+        public async Task<Customer> CreateCustomer(CustomerCreateDto dto)
+        {
+            var customer = new Customer
+            {
+                UserId = dto.UserId,
+                LoyaltyPoints = dto.LoyaltyPoints,
+                TotalSpent = dto.TotalSpent,
+                CreditBalance = dto.CreditBalance
+            };
+
+            _context.Customers.Add(customer);
+            await _context.SaveChangesAsync();
+
+            return customer;
         }
 
         public async Task<Customer?> GetByIdWithUserAndVehiclesAsync(int customerId)
@@ -57,6 +105,37 @@ namespace VehicleIMS.Infrastructure.Repositories
         {
             return await _context.Vehicles.FindAsync(vehicleId);
         }
+
+        public async Task<List<Customer>> GetHighSpendersAsync()
+        {
+            return await _context.Customers
+                .Include(c => c.User)
+                .Include(c => c.Vehicles)
+                .Where(c => c.TotalSpent >= 5000)
+                .OrderByDescending(c => c.TotalSpent)
+                .ToListAsync();
+        }
+
+        public async Task<List<Customer>> GetPendingCreditsAsync()
+        {
+            return await _context.Customers
+                .Include(c => c.User)
+                .Include(c => c.Vehicles)
+                .Where(c => c.CreditBalance > 0)
+                .OrderByDescending(c => c.CreditBalance)
+                .ToListAsync();
+        }
+
+        public async Task<List<Customer>> GetRegularCustomersAsync()
+        {
+            return await _context.Customers
+                .Include(c => c.User)
+                .Include(c => c.Vehicles)
+                .Where(c => c.LoyaltyPoints >= 50 || c.TotalSpent >= 3000)
+                .OrderByDescending(c => c.LoyaltyPoints)
+                .ToListAsync();
+        }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
