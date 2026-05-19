@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VehicleIMS.Application.DTOs;
 using VehicleIMS.Application.Interfaces;
 
@@ -46,4 +47,43 @@ public class RequestController : ControllerBase
         var requests = await _requestService.GetRequestsByCustomerAsync(customerId);
         return Ok(requests);
     }
+
+    [HttpGet]
+    [Authorize(Policy = "StaffOrAdmin")]
+    public async Task<IActionResult> GetAllRequests()
+    {
+        var requests = await _requestService.GetAllRequestsAsync();
+        return Ok(requests);
+    }
+
+    [HttpPut("{requestId}/approve")]
+    [Authorize(Policy = "StaffOrAdmin")]
+    public async Task<IActionResult> ApprovePartRequest(int requestId)
+    {
+        try
+        {
+            var result = await _requestService.ApprovePartRequestAsync(requestId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPut("{requestId}/reject")]
+    [Authorize(Policy = "StaffOrAdmin")]
+    public async Task<IActionResult> RejectPartRequest(int requestId)
+    {
+        try
+        {
+            var result = await _requestService.RejectPartRequestAsync(requestId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
 }
