@@ -89,3 +89,9 @@ public class InvoiceSummaryDTO
     public string PaymentStatus { get; set; } = string.Empty;
     public List<SalesItemResponseDTO> Items { get; set; } = new();
 }
+
+public class UpdateSalesStatusDTO
+{
+    public PaymentStatus PaymentStatus { get; set; }
+    public string? PaymentMethod { get; set; }
+}

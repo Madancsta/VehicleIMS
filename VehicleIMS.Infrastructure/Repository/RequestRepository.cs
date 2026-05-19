@@ -58,6 +58,12 @@ namespace VehicleIMS.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<Request?> GetByBookingIdAsync(int bookingId)
+        {
+            return await _context.Requests
+                .FirstOrDefaultAsync(r => r.BookingId == bookingId);
+        }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
