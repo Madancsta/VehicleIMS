@@ -31,6 +31,7 @@ public class AppDbContext : IdentityDbContext<Users, Role, Guid>
         public DbSet<Sales> Sales => Set<Sales>();
         public DbSet<Service> Services => Set<Service>();
         public DbSet<SalesItem> SalesItems => Set<SalesItem>();
+        public DbSet<NotificationReadState> NotificationReadStates => Set<NotificationReadState>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -93,6 +94,10 @@ public class AppDbContext : IdentityDbContext<Users, Role, Guid>
             // Unique invoice number
             modelBuilder.Entity<Sales>()
                 .HasIndex(s => s.InvoiceNumber)
+                .IsUnique();
+
+            modelBuilder.Entity<NotificationReadState>()
+                .HasIndex(n => new { n.UserId, n.NotificationKey })
                 .IsUnique();
     }
 }
