@@ -22,6 +22,13 @@ public class RequestService : IRequestService
             throw new Exception("Booking not found.");
         }
 
+        var bookingIsCompleted = await _requestRepository.BookingIsCompletedAsync(dto.BookingId);
+
+        if (bookingIsCompleted)
+        {
+            throw new Exception("Cannot submit part request for a completed booking.");
+        }
+
         var partExists = await _requestRepository.PartExistsAsync(dto.PartId);
 
         if (!partExists)

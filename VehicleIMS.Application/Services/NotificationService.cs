@@ -1,4 +1,4 @@
-﻿using VehicleIMS.Application.DTOs;
+using VehicleIMS.Application.DTOs;
 using VehicleIMS.Application.Interfaces;
 
 namespace VehicleIMS.Application.Services;
@@ -12,45 +12,73 @@ public class NotificationService : INotificationService
         _notificationRepository = notificationRepository;
     }
 
-    public async Task<List<NotificationDTO>> GetLowStockNotificationsAsync()
+    public async Task<List<NotificationDTO>> GetLowStockNotificationsAsync(Guid userId)
     {
-        return await _notificationRepository.GetLowStockNotificationsAsync();
+        return await _notificationRepository.GetLowStockNotificationsAsync(userId);
     }
 
-    public async Task<List<NotificationDTO>> GetUnpaidCreditNotificationsAsync()
+    public async Task<List<NotificationDTO>> GetUnpaidCreditNotificationsAsync(Guid userId)
     {
-        return await _notificationRepository.GetUnpaidCreditNotificationsAsync();
+        return await _notificationRepository.GetUnpaidCreditNotificationsAsync(userId);
     }
 
-    public async Task<List<NotificationDTO>> GetAllNotificationsAsync()
+    public async Task<List<NotificationDTO>> GetAllNotificationsAsync(Guid userId)
     {
-        var lowStock = await GetLowStockNotificationsAsync();
-        var unpaidCredits = await GetUnpaidCreditNotificationsAsync();
+        var lowStock = await GetLowStockNotificationsAsync(userId);
+        var unpaidCredits = await GetUnpaidCreditNotificationsAsync(userId);
 
-        var all = lowStock.Concat(unpaidCredits)
-            .OrderByDescending(n => n.CreatedAt)
+        return lowStock.Concat(unpaidCredits)
+            .OrderBy(n => n.IsRead)
+            .ThenByDescending(n => n.CreatedAt)
             .ToList();
+    }
 
-        for (int i = 0; i < all.Count; i++)
+    public async Task<object> GetNotificationSummaryAsync(Guid userId)
+    {
+        var all = await GetAllNotificationsAsync(userId);
+        var unread = all.Where(n => !n.IsRead).ToList();
+
+        return new
         {
-            all[i].Id = i + 1;
+            LowStockCount = unread.Count(n => n.Type == "LowStock" || n.Type == "OutOfStock"),
+            UnpaidCreditCount = unread.Count(n => n.Type == "UnpaidCredit"),
+            TotalUnread = unread.Count,
+            TotalNotifications = all.Count,
+            TotalUnpaidAmount = all
+                .Where(n => n.Type == "UnpaidCredit")
+                .Select(n => n.Data as UnpaidCreditNotificationDTO)
+                .Where(n => n != null)
+                .Sum(n => n!.CreditAmount)
+        };
+    }
+
+    public async Task<bool> MarkAsReadAsync(Guid userId, int notificationId)
+    {
+        var notification = (await GetAllNotificationsAsync(userId))
+            .FirstOrDefault(n => n.Id == notificationId);
+
+        if (notification == null)
+        {
+            return false;
         }
 
-        return all;
+        await _notificationRepository.MarkAsReadAsync(userId, notification.NotificationKey);
+        return true;
     }
 
-    public async Task<object> GetNotificationSummaryAsync()
+    public async Task MarkAllAsReadAsync(Guid userId, string type = "")
     {
-        return await _notificationRepository.GetNotificationSummaryAsync();
-    }
+        var notifications = await GetAllNotificationsAsync(userId);
 
-    public async Task<bool> MarkAsReadAsync(int notificationId)
-    {
-        return await Task.FromResult(true);
-    }
+        if (!string.IsNullOrWhiteSpace(type))
+        {
+            notifications = notifications
+                .Where(n => string.Equals(n.Type, type, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
 
-    public async Task MarkAllAsReadAsync(string type = "")
-    {
-        await Task.CompletedTask;
+        await _notificationRepository.MarkManyAsReadAsync(
+            userId,
+            notifications.Where(n => !n.IsRead).Select(n => n.NotificationKey));
     }
 }
