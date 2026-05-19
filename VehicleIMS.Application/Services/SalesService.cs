@@ -11,7 +11,9 @@ public class SalesService : ISalesService
     private readonly ISalesRepository _salesRepo;
     private readonly IRepositoryBase<Part> _partRepo;
     private readonly IRepositoryBase<Customer> _customerRepo;
+    private readonly IRepositoryBase<Request> _requestRepo;
     private readonly ICustomerRepository _customerRepository;
+    private readonly IRequestRepository _requestRepository;
     private readonly IRepositoryBase<Service> _serviceRepo;
     private readonly IRepositoryBase<Vehicle> _vehicleRepo;
     private readonly IBookingRepository _bookingRepo;
@@ -20,7 +22,9 @@ public class SalesService : ISalesService
         ISalesRepository salesRepo,
         IRepositoryBase<Part> partRepo,
         IRepositoryBase<Customer> customerRepo,
+        IRepositoryBase<Request> requestRepo,
         ICustomerRepository customerRepository,
+        IRequestRepository requestRepository,
         IRepositoryBase<Service> serviceRepo,
         IRepositoryBase<Vehicle> vehicleRepo,
         IBookingRepository bookingRepo)
@@ -28,7 +32,9 @@ public class SalesService : ISalesService
         _salesRepo = salesRepo;
         _partRepo = partRepo;
         _customerRepo = customerRepo;
+        _requestRepo = requestRepo;
         _customerRepository = customerRepository;
+        _requestRepository = requestRepository;
         _serviceRepo = serviceRepo;
         _vehicleRepo = vehicleRepo;
         _bookingRepo = bookingRepo;
@@ -169,8 +175,20 @@ public class SalesService : ISalesService
 
         if (booking != null)
         {
+            // Complete booking
             booking.BookingStatus = BookingStatus.Completed;
             await _bookingRepo.SaveChangesAsync();
+
+            // Complete related request
+            var request = await _requestRepository.GetByBookingIdAsync(booking.BookingId);
+
+            if (request != null)
+            {
+                request.RequestStatusId = 4;
+
+                _requestRepo.Update(request);
+                await _requestRepo.SaveChangesAsync();
+            }
         }
 
         // Reload with details for response
@@ -241,6 +259,60 @@ public class SalesService : ISalesService
             .ToListAsync();
 
         return sales.Select(MapToResponse).ToList();
+    }
+
+    public async Task<SalesResponseDTO> UpdateSalePaymentStatusAsync(int salesId, UpdateSalesStatusDTO dto)
+    {
+        // 1. Fetch existing sale with required navigations
+        var sale = await _salesRepo.GetByIdWithDetailsAsync(salesId);
+        if (sale == null)
+            throw new KeyNotFoundException($"Sale {salesId} not found.");
+
+        // 2. Validate transition (only Pending -> Completed is allowed for this example)
+        if (sale.PaymentStatus == PaymentStatus.Pending && dto.PaymentStatus == PaymentStatus.Completed)
+        {
+            // Ensure payment method is "credit" (original assumption)
+            if (!sale.PaymentMethod.Equals("credit", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Only credit sales can be moved from Pending to Completed.");
+
+            // Update customer financials
+            var customer = await _customerRepo.GetByIdAsync(sale.CustomerId)
+                ?? throw new KeyNotFoundException($"Customer {sale.CustomerId} not found.");
+
+            // Move from CreditBalance to TotalSpent
+            decimal saleAmount = sale.SalesAmount;
+            customer.CreditBalance = (customer.CreditBalance ?? 0f) - (float)saleAmount;
+            customer.TotalSpent = (customer.TotalSpent ?? 0f) + (float)saleAmount;
+
+            // Award loyalty points (1 point per 100 spent)
+            int earnedPoints = (int)(saleAmount / 100);
+            customer.LoyaltyPoints = (customer.LoyaltyPoints ?? 0) + earnedPoints;
+
+            await _customerRepository.UpdateAsync(customer);
+        }
+        else if (sale.PaymentStatus == dto.PaymentStatus)
+        {
+            // No change needed
+            return MapToResponse(sale);
+        }
+        else
+        {
+            throw new InvalidOperationException($"Cannot change payment status from {sale.PaymentStatus} to {dto.PaymentStatus}.");
+        }
+
+        // 3. Update sale fields
+        sale.PaymentStatus = dto.PaymentStatus;
+        if (!string.IsNullOrWhiteSpace(dto.PaymentMethod))
+            sale.PaymentMethod = dto.PaymentMethod;
+
+        _salesRepo.Update(sale);
+        await _salesRepo.SaveChangesAsync();
+
+        // 4. Reload and return updated DTO
+        var updated = await _salesRepo.GetByIdWithDetailsAsync(salesId)
+            ?? throw new Exception("Failed to reload updated sale.");
+
+        return MapToResponse(updated);
     }
 
     // ── Mapper ───────────────────────────────────────────────────────────────

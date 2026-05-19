@@ -9,4 +9,5 @@ public interface ISalesService
     Task<InvoiceSummaryDTO?> GetInvoiceSummaryAsync(int salesId);
     Task<List<SalesResponseDTO>> GetSalesByCustomerAsync(int customerId);
     Task<List<SalesResponseDTO>> GetAllSalesAsync();
+    Task<SalesResponseDTO> UpdateSalePaymentStatusAsync(int salesId, UpdateSalesStatusDTO dto);
 }

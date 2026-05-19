@@ -89,4 +89,26 @@ public class SalesController : ControllerBase
 
         return Ok(new { message = $"Invoice {invoice.InvoiceNumber} sent to {recipient}." });
     }
+
+    [HttpPatch("{id:int}/status")]
+    public async Task<IActionResult> UpdateSaleStatus(int id, [FromBody] UpdateSalesStatusDTO dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        try
+        {
+            var updatedSale = await _salesService.UpdateSalePaymentStatusAsync(id, dto);
+            return Ok(updatedSale);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
 }
