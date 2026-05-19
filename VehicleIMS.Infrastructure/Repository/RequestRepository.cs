@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using VehicleIMS.Application.Interfaces;
 using VehicleIMS.Domain.Entities;
 using VehicleIMS.Infrastructure.Data;
+using VehicleIMS.Domain.Enums;
 
 namespace VehicleIMS.Infrastructure.Repositories
 {
@@ -20,6 +21,13 @@ namespace VehicleIMS.Infrastructure.Repositories
         public async Task<bool> BookingExistsAsync(int bookingId)
         {
             return await _context.Bookings.AnyAsync(b => b.BookingId == bookingId);
+        }
+
+        public async Task<bool> BookingIsCompletedAsync(int bookingId)
+        {
+            return await _context.Bookings.AnyAsync(
+                b => b.BookingId == bookingId && b.BookingStatus == BookingStatus.Completed
+            );
         }
 
         public async Task<bool> PartExistsAsync(int partId)
