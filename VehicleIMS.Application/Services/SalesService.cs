@@ -11,6 +11,7 @@ public class SalesService : ISalesService
     private readonly ISalesRepository _salesRepo;
     private readonly IRepositoryBase<Part> _partRepo;
     private readonly IRepositoryBase<Customer> _customerRepo;
+    private readonly ICustomerRepository _customerRepository;
     private readonly IRepositoryBase<Service> _serviceRepo;
     private readonly IRepositoryBase<Vehicle> _vehicleRepo;
     private readonly IBookingRepository _bookingRepo;
@@ -19,6 +20,7 @@ public class SalesService : ISalesService
         ISalesRepository salesRepo,
         IRepositoryBase<Part> partRepo,
         IRepositoryBase<Customer> customerRepo,
+        ICustomerRepository customerRepository,
         IRepositoryBase<Service> serviceRepo,
         IRepositoryBase<Vehicle> vehicleRepo,
         IBookingRepository bookingRepo)
@@ -26,6 +28,7 @@ public class SalesService : ISalesService
         _salesRepo = salesRepo;
         _partRepo = partRepo;
         _customerRepo = customerRepo;
+        _customerRepository = customerRepository;
         _serviceRepo = serviceRepo;
         _vehicleRepo = vehicleRepo;
         _bookingRepo = bookingRepo;
@@ -114,6 +117,35 @@ public class SalesService : ISalesService
 
         decimal total = subtotal - discount;
 
+        // Determine payment status based on payment method
+        PaymentStatus paymentStatus;
+        bool isCreditPayment = dto.PaymentMethod.Equals("credit", StringComparison.OrdinalIgnoreCase);
+
+        if (isCreditPayment)
+        {
+            paymentStatus = PaymentStatus.Pending;
+        }
+        else
+        {
+            paymentStatus = PaymentStatus.Completed;
+        }
+
+        // Update customer's financial records
+        if (paymentStatus == PaymentStatus.Completed)
+        {
+            customer.TotalSpent = (customer.TotalSpent ?? 0f) + (float)total;
+
+            int earnedPoints = (int)(total / 100);
+            customer.LoyaltyPoints = (customer.LoyaltyPoints ?? 0) + earnedPoints;
+        }
+        else if (isCreditPayment)
+        {
+            customer.CreditBalance = (customer.CreditBalance ?? 0f) + (float)total;
+        }
+
+        // Update customer in database
+        await _customerRepository.UpdateAsync(customer);
+
         // Generate invoice number
         string invoiceNumber = await _salesRepo.GenerateInvoiceNumberAsync();
 
@@ -127,13 +159,14 @@ public class SalesService : ISalesService
             ServiceCharge = serviceCharge,
             Discount = discount,
             SalesAmount = total,
-            PaymentStatus = PaymentStatus.Completed,
+            PaymentStatus = paymentStatus,
             PaymentMethod = dto.PaymentMethod,
             SalesItems = salesItems
         };
 
         _salesRepo.Create(sale);
         await _salesRepo.SaveChangesAsync();
+
         if (booking != null)
         {
             booking.BookingStatus = BookingStatus.Completed;

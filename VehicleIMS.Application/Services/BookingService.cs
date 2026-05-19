@@ -83,7 +83,10 @@ namespace VehicleIMS.Application.Services
                 b.BookingStatus
             }).Cast<object>().ToList();
         }
-
+        public async Task<object?> GetBookingDetailsAsync(int bookingId)
+        {
+            return await _bookingRepository.GetBookingDetailsAsync(bookingId);
+        }
         private static BookingResponseDTO MapToResponse(Booking b) => new()
         {
             BookingId = b.BookingId,

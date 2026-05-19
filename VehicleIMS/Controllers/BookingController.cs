@@ -70,5 +70,26 @@ namespace VehicleIMS.Controllers
             var bookings = await _bookingService.GetVehicleBookingsAsync(vehicleId);
             return Ok(bookings);
         }
+
+        [HttpGet("{bookingId}/details")]
+        public async Task<IActionResult> GetBookingDetails(int bookingId)
+        {
+            try
+            {
+                var booking = await _bookingService.GetBookingDetailsAsync(bookingId);
+
+                if (booking == null)
+                {
+                    return NotFound(new { message = $"Booking with ID {bookingId} was not found." });
+                }
+
+                return Ok(booking);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error retrieving booking details: {ex.Message}" });
+            }
+        }
+
     }
 }

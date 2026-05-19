@@ -147,7 +147,7 @@
 
             var customers = await _customerRepository.SearchCustomersAsync(query);
 
-            var result = customers.Select(FormatCustomerReport);
+        var result = customers.Select(c => FormatCustomerReport(c));
 
             return Ok(result);
         }
@@ -157,24 +157,24 @@
         {
             var customers = await _customerRepository.GetHighSpendersAsync();
 
-            return Ok(customers.Select(FormatCustomerReport));
-        }
+        return Ok(customers.Select(c => FormatCustomerReport(c)));
+    }
 
         [HttpGet("reports/pending-credits")]
         public async Task<IActionResult> GetPendingCredits()
         {
             var customers = await _customerRepository.GetPendingCreditsAsync();
 
-            return Ok(customers.Select(FormatCustomerReport));
-        }
+        return Ok(customers.Select(c => FormatCustomerReport(c)));
+    }
 
         [HttpGet("reports/regulars")]
         public async Task<IActionResult> GetRegularCustomers()
         {
             var customers = await _customerRepository.GetRegularCustomersAsync();
 
-            return Ok(customers.Select(FormatCustomerReport));
-        }
+        return Ok(customers.Select(c => FormatCustomerReport(c)));
+    }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -184,35 +184,49 @@
             if (customer == null)
                 return NotFound("Customer not found.");
 
-            return Ok(FormatCustomerReport(customer));
-        }
+        return Ok(FormatCustomerReport(customer));
+    }
 
-        private object FormatCustomerReport(Customer c)
+    private object FormatCustomerReport(Customer c, List<Sales>? salesHistory = null)
+    {
+        return new
         {
-            return new
-            {
-                c.CustomerId,
-                c.FirstName,
-                c.LastName,
-                Email = c.User?.Email,
-                PhoneNumber = c.User?.PhoneNumber,
-                c.LoyaltyPoints,
-                c.TotalSpent,
-                c.CreditBalance,
-                Vehicles = c.Vehicles.Select(v => new
-                {
-                    v.VehicleId,
-                    v.VehicleNumber,
-                    v.Brand,
-                    v.Model,
-                    v.Color,
-                    v.Year
-                })
-            };
-        }
+            c.CustomerId,
+            c.FirstName,
+            c.LastName,
 
-        // Check if the logged-in user owns the selected customer profile
-        private async Task<bool> IsOwnCustomer(int customerId)
+            Email = c.User?.Email,
+            PhoneNumber = c.User?.PhoneNumber,
+            Address = c.User?.Address,
+
+            c.LoyaltyPoints,
+            c.TotalSpent,
+            c.CreditBalance,
+
+            Vehicles = c.Vehicles.Select(v => new
+            {
+                v.VehicleId,
+                v.VehicleNumber,
+                v.Brand,
+                v.Model,
+                v.Color,
+                v.Year
+            }),
+
+            PurchaseHistory = salesHistory?.Select(s => new
+            {
+                s.SalesId,
+                s.InvoiceNumber,
+                s.SalesDate,
+                s.SalesAmount,
+                s.PaymentMethod,
+                PaymentStatus = s.PaymentStatus.ToString()
+            }) ?? Enumerable.Empty<object>()
+        };
+    }
+
+    // Check if the logged-in user owns the selected customer profile
+    private async Task<bool> IsOwnCustomer(int customerId)
         {
             var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 

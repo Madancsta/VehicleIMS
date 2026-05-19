@@ -128,14 +128,26 @@ namespace VehicleIMS.Infrastructure.Repository
 
         public async Task<List<Customer>> GetRegularCustomersAsync()
         {
+            // Get customer IDs with more than 3 completed sales
+            var customerIds = await _context.Sales
+                .GroupBy(s => s.CustomerId)
+                .Where(g => g.Count() > 3)
+                .Select(g => g.Key)
+                .ToListAsync();
+
+            // Fetch those customers
             return await _context.Customers
                 .Include(c => c.User)
                 .Include(c => c.Vehicles)
-                .Where(c => c.LoyaltyPoints >= 50 || c.TotalSpent >= 3000)
-                .OrderByDescending(c => c.LoyaltyPoints)
+                .Where(c => customerIds.Contains(c.CustomerId))
+                .OrderByDescending(c => _context.Sales.Count(s => s.CustomerId == c.CustomerId))
                 .ToListAsync();
         }
-
+        public async Task UpdateAsync(Customer customer)
+        {
+            _context.Customers.Update(customer);
+            await _context.SaveChangesAsync();
+        }
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();

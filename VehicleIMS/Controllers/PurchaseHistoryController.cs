@@ -9,7 +9,6 @@ namespace VehicleIMS.Controllers;
 
 [Route("api/customer/purchase-history")]
 [ApiController]
-[Authorize(Roles = "Customer")]
 public class PurchaseHistoryController : ControllerBase
 {
     private readonly ISalesService _salesService;
@@ -154,5 +153,72 @@ public class PurchaseHistoryController : ControllerBase
             loyaltyPoints = customer.LoyaltyPoints,
             creditBalance = customer.CreditBalance
         });
+    }
+
+    /// <summary>
+    /// Get purchase history for a specific customer by Customer ID (Admin/Staff only)
+    /// </summary>
+    [HttpGet("{customerId}")]
+    [Authorize(Roles = "Admin,Staff")]
+    public async Task<IActionResult> GetCustomerPurchaseHistory(int customerId)
+    {
+        try
+        {
+            // Verify customer exists
+            var customer = await _context.Customers
+                .Include(c => c.User)
+                .FirstOrDefaultAsync(c => c.CustomerId == customerId);
+
+            if (customer == null)
+            {
+                return NotFound(new { message = $"Customer with ID {customerId} not found." });
+            }
+
+            // Get all sales for this customer
+            var sales = await _salesService.GetSalesByCustomerAsync(customerId);
+
+            var result = new
+            {
+                customerInfo = new
+                {
+                    customer.CustomerId,
+                    customerName = $"{customer.FirstName} {customer.LastName}",
+                    email = customer.User?.Email,
+                    phoneNumber = customer.User?.PhoneNumber,
+                    customer.LoyaltyPoints,
+                    customer.TotalSpent,
+                    customer.CreditBalance
+                },
+                purchaseSummary = new
+                {
+                    totalOrders = sales.Count(),
+                    totalSpent = sales.Sum(s => s.SalesAmount),
+                    averageOrderValue = sales.Any() ? sales.Average(s => s.SalesAmount) : 0,
+                    lastOrderDate = sales.Any() ? sales.Max(s => s.SalesDate) : (DateTime?)null
+                },
+                orders = sales.Select(s => new
+                {
+                    s.SalesId,
+                    s.InvoiceNumber,
+                    s.SalesDate,
+                    s.SalesAmount,
+                    s.PaymentStatus,
+                    s.PaymentMethod,
+                    s.Discount,
+                    itemCount = s.Items?.Count() ?? 0,
+                    serviceInfo = s.ServiceType != null ? new
+                    {
+                        s.ServiceType,
+                        s.ServiceCharge
+                    } : null
+                }).OrderByDescending(s => s.SalesDate)
+            };
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = $"Error retrieving customer purchase history: {ex.Message}" });
+        }
     }
 }

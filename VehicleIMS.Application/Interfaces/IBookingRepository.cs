@@ -11,7 +11,7 @@ namespace VehicleIMS.Application.Interfaces
         Task<List<Booking>> GetBookingsByVehicleIdAsync(int vehicleId);
         Task<List<Booking>> GetBookingsByCustomerAsync(int customerId);
         Task<Booking?> GetByIdWithDetailsAsync(int bookingId);
-
+        Task<Object?> GetBookingDetailsAsync(int bookingId);
         Task SaveChangesAsync();
     }
 }

@@ -22,6 +22,7 @@ namespace VehicleIMS.Application.Interfaces
         Task<List<Customer>> GetHighSpendersAsync();
         Task<List<Customer>> GetPendingCreditsAsync();
         Task<List<Customer>> GetRegularCustomersAsync();
+        Task UpdateAsync(Customer customer);
         Task SaveChangesAsync();
     }
 }

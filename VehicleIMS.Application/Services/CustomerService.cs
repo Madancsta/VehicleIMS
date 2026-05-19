@@ -170,9 +170,9 @@ public class CustomerService : ICustomerService
             Email = customer.User.Email ?? "",
             PhoneNumber = customer.User.PhoneNumber ?? "",
             Address = customer.User.Address,
-            LoyaltyPoints = customer.LoyaltyPoints,
-            TotalSpent = customer.TotalSpent,
-            CreditBalance = customer.CreditBalance,
+            LoyaltyPoints = customer.LoyaltyPoints ?? 0,
+            TotalSpent = customer.TotalSpent ?? 0f,
+            CreditBalance = customer.CreditBalance ?? 0f,
             Vehicles = customer.Vehicles.Select(v => new VehicleDTO
             {
                 VehicleId = v.VehicleId,
