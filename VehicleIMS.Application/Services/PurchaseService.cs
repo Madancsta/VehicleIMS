@@ -63,6 +63,7 @@ public class PurchaseService(
             if (part is not null)
             {
                 part.StockQuantity += item.Quantity;
+                part.LastStockUpdate = DateTime.UtcNow;  
                 partRepository.Update(part);
             }
         }

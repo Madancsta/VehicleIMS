@@ -47,7 +47,7 @@ namespace VehicleMS.Controllers
 
             if (!result.Success)
             {
-                throw new UnauthorizedAccessException(result.Message);
+                return Unauthorized(new { success = false, message = result.Message });
             }
 
             return Ok(result);

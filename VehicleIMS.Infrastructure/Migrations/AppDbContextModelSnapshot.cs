@@ -169,21 +169,24 @@ namespace VehicleIMS.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CustomerId"));
 
-                    b.Property<float>("CreditBalance")
+                    b.Property<float?>("CreditBalance")
                         .HasColumnType("real");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("LastCreditUpdate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("LoyaltyPoints")
+                    b.Property<int?>("LoyaltyPoints")
                         .HasColumnType("integer");
 
-                    b.Property<float>("TotalSpent")
+                    b.Property<float?>("TotalSpent")
                         .HasColumnType("real");
 
                     b.Property<Guid>("UserId")
@@ -196,6 +199,32 @@ namespace VehicleIMS.Infrastructure.Migrations
                     b.ToTable("Customers");
                 });
 
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.NotificationReadState", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("NotificationKey")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "NotificationKey")
+                        .IsUnique();
+
+                    b.ToTable("NotificationReadStates");
+                });
+
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Part", b =>
                 {
                     b.Property<int>("PartId")
@@ -203,6 +232,9 @@ namespace VehicleIMS.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PartId"));
+
+                    b.Property<DateTime?>("LastStockUpdate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("PartCategoryId")
                         .HasColumnType("integer");
@@ -769,6 +801,17 @@ namespace VehicleIMS.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("VehicleIMS.Domain.Entities.Customer", b =>
+                {
+                    b.HasOne("VehicleIMS.Domain.Entities.Users", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("VehicleIMS.Domain.Entities.NotificationReadState", b =>
                 {
                     b.HasOne("VehicleIMS.Domain.Entities.Users", "User")
                         .WithMany()

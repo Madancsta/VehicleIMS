@@ -25,7 +25,8 @@ public class PartService(IPartRepository partRepository) : IPartService
             PartName = dto.PartName,
             PartCategoryId = dto.PartCategoryId,
             PartPrice = dto.PartPrice,
-            StockQuantity = 0
+            StockQuantity = 0,
+            LastStockUpdate = DateTime.UtcNow  // ✅ ADD THIS LINE
         };
 
         partRepository.Create(part);
@@ -41,7 +42,7 @@ public class PartService(IPartRepository partRepository) : IPartService
         part.PartName = dto.PartName;
         part.PartCategoryId = dto.PartCategoryId;
         part.PartPrice = dto.PartPrice;
-   
+        part.LastStockUpdate = DateTime.UtcNow;  
 
         partRepository.Update(part);
         await partRepository.SaveChangesAsync();

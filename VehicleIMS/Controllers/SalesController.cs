@@ -26,12 +26,27 @@ public class SalesController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var result = await _salesService.CreateSaleAsync(dto);
-        return CreatedAtAction(nameof(GetSaleById), new { id = result.SalesId }, result);
+        try
+        {
+            var result = await _salesService.CreateSaleAsync(dto);
+            return CreatedAtAction(nameof(GetSaleById), new { id = result.SalesId }, result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { success = false, message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            // 
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { success = false, message = "An error occurred while creating the sale.", error = ex.Message });
+        }
     }
 
     // ── GET api/sales ─────────────────────────────────────────────────────────
-    /// <summary>List all sales (Admin/Staff only).</summary>
     [HttpGet]
     [Authorize(Policy = "StaffOrAdmin")]
     public async Task<IActionResult> GetAllSales()
@@ -110,5 +125,4 @@ public class SalesController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
-
 }

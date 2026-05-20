@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using VehicleIMS.Application.DTOs;
 using VehicleIMS.Application.Interfaces;
 using VehicleIMS.Domain.Entities;
@@ -27,7 +27,8 @@ public class NotificationRepository : INotificationRepository
             {
                 p.PartId,
                 p.PartName,
-                p.StockQuantity
+                p.StockQuantity,
+                p.LastStockUpdate  // ✅ ADD THIS
             })
             .ToListAsync();
 
@@ -37,22 +38,25 @@ public class NotificationRepository : INotificationRepository
             {
                 p.PartId,
                 p.PartName,
-                p.StockQuantity
+                p.StockQuantity,
+                p.LastStockUpdate  // ✅ ADD THIS
             })
             .ToListAsync();
 
-        var notifications = lowStockParts.Select(p =>
+        var notifications = new List<NotificationDTO>();
+
+        foreach (var p in lowStockParts)
         {
             var key = BuildKey("LowStock", p.PartId);
 
-            return new NotificationDTO
+            notifications.Add(new NotificationDTO
             {
                 Id = p.PartId,
                 NotificationKey = key,
                 Type = "LowStock",
                 Title = "Low Stock Alert",
                 Message = $"{p.PartName} is running low. Only {p.StockQuantity} left in stock.",
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = p.LastStockUpdate ?? DateTime.UtcNow,  // ✅ USE THIS
                 IsRead = readKeys.Contains(key),
                 Data = new LowStockNotificationDTO
                 {
@@ -61,21 +65,21 @@ public class NotificationRepository : INotificationRepository
                     CurrentStock = p.StockQuantity,
                     Threshold = LOW_STOCK_THRESHOLD
                 }
-            };
-        }).ToList();
+            });
+        }
 
-        notifications.AddRange(outOfStockParts.Select(p =>
+        foreach (var p in outOfStockParts)
         {
             var key = BuildKey("OutOfStock", p.PartId);
 
-            return new NotificationDTO
+            notifications.Add(new NotificationDTO
             {
                 Id = p.PartId,
                 NotificationKey = key,
                 Type = "OutOfStock",
                 Title = "Out of Stock Alert!",
                 Message = $"{p.PartName} is completely out of stock. Please restock immediately.",
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = p.LastStockUpdate ?? DateTime.UtcNow,  // ✅ USE THIS
                 IsRead = readKeys.Contains(key),
                 Data = new LowStockNotificationDTO
                 {
@@ -84,8 +88,8 @@ public class NotificationRepository : INotificationRepository
                     CurrentStock = 0,
                     Threshold = LOW_STOCK_THRESHOLD
                 }
-            };
-        }));
+            });
+        }
 
         return notifications;
     }
@@ -103,34 +107,39 @@ public class NotificationRepository : INotificationRepository
                 c.FirstName,
                 c.LastName,
                 c.CreditBalance,
+                c.LastCreditUpdate,  // ✅ ADD THIS
                 Email = c.User.Email ?? "",
                 PhoneNumber = c.User.PhoneNumber ?? ""
             })
             .ToListAsync();
 
-        return customersWithCredit.Select(c =>
+        var notifications = new List<NotificationDTO>();
+
+        foreach (var c in customersWithCredit)
         {
             var key = BuildKey("UnpaidCredit", c.CustomerId);
 
-            return new NotificationDTO
+            notifications.Add(new NotificationDTO
             {
                 Id = UNPAID_CREDIT_ID_OFFSET + c.CustomerId,
                 NotificationKey = key,
                 Type = "UnpaidCredit",
                 Title = "Unpaid Credit Alert",
                 Message = $"{c.FirstName} {c.LastName} has unpaid credit of Rs. {c.CreditBalance:N0}.",
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = c.LastCreditUpdate ?? DateTime.UtcNow,  // ✅ USE THIS
                 IsRead = readKeys.Contains(key),
                 Data = new UnpaidCreditNotificationDTO
                 {
                     CustomerId = c.CustomerId,
                     CustomerName = $"{c.FirstName} {c.LastName}",
-                    CreditAmount = (decimal)(c.CreditBalance ?? 0),
+                    CreditAmount = (decimal)c.CreditBalance,
                     Email = c.Email,
                     PhoneNumber = c.PhoneNumber
                 }
-            };
-        }).ToList();
+            });
+        }
+
+        return notifications;
     }
 
     public async Task MarkAsReadAsync(Guid userId, string notificationKey)
@@ -186,6 +195,31 @@ public class NotificationRepository : INotificationRepository
 
         await _context.NotificationReadStates.AddRangeAsync(newReadStates);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task MarkAllAsReadAsync(Guid userId)
+    {
+        var allKeys = new List<string>();
+
+        var lowStockKeys = await _context.Parts
+            .Where(p => p.StockQuantity <= LOW_STOCK_THRESHOLD)
+            .Select(p => BuildKey("LowStock", p.PartId))
+            .ToListAsync();
+        allKeys.AddRange(lowStockKeys);
+
+        var outOfStockKeys = await _context.Parts
+            .Where(p => p.StockQuantity == 0)
+            .Select(p => BuildKey("OutOfStock", p.PartId))
+            .ToListAsync();
+        allKeys.AddRange(outOfStockKeys);
+
+        var creditKeys = await _context.Customers
+            .Where(c => c.CreditBalance > 0)
+            .Select(c => BuildKey("UnpaidCredit", c.CustomerId))
+            .ToListAsync();
+        allKeys.AddRange(creditKeys);
+
+        await MarkManyAsReadAsync(userId, allKeys);
     }
 
     private async Task<HashSet<string>> GetReadKeysAsync(Guid userId)

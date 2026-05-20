@@ -95,8 +95,9 @@ public class SalesService : ISalesService
                 throw new InvalidOperationException(
                     $"Insufficient stock for '{part.PartName}'. Available: {part.StockQuantity}.");
 
-            // Deduct stock
+            // Deduct stock and update timestamp
             part.StockQuantity -= itemDto.Quantity;
+            part.LastStockUpdate = DateTime.UtcNow;  
             _partRepo.Update(part);
 
             var lineTotal = part.PartPrice * itemDto.Quantity;
@@ -147,6 +148,7 @@ public class SalesService : ISalesService
         else if (isCreditPayment)
         {
             customer.CreditBalance = (customer.CreditBalance ?? 0f) + (float)total;
+            customer.LastCreditUpdate = DateTime.UtcNow;  
         }
 
         // Update customer in database

@@ -24,5 +24,7 @@ namespace VehicleIMS.Domain.Entities
 
         [Required]
         public int StockQuantity { get; set; }
+
+        public DateTime? LastStockUpdate { get; set; }
     }
 }

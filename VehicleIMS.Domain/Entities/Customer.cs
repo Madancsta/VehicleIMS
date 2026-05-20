@@ -26,5 +26,6 @@ public class Customer
 
     public float? CreditBalance { get; set; } = 0;
 
+    public DateTime? LastCreditUpdate { get; set; }
     public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
 }
