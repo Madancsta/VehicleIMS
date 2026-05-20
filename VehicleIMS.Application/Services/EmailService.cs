@@ -158,7 +158,7 @@ public class EmailService : IEmailService
               </table>
             </div>
             <div class=""footer"">
-              Thank you for your business! This is a computer-generated invoice.
+              Thank you for your business! This is a Gearix VehicleIMS Invoice.
             </div>
           </div>
         </body>

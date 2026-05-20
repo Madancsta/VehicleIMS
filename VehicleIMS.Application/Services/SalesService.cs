@@ -84,7 +84,7 @@ public class SalesService : ISalesService
 
         // Build line items and calculate parts total
         var salesItems = new List<SalesItem>();
-        decimal partsTotal = 0;
+        decimal partsTotal = 0m;
 
         foreach (var itemDto in dto.Items)
         {
