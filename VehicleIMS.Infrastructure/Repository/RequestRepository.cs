@@ -66,6 +66,32 @@ namespace VehicleIMS.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<Request?> GetRequestByIdAsync(int requestId)
+        {
+            return await _context.Requests
+                .Include(r => r.Booking)
+                .Include(r => r.RequestParts)
+                    .ThenInclude(rp => rp.Part)
+                .FirstOrDefaultAsync(r => r.RequestId == requestId);
+        }
+
+        public async Task<List<Request>> GetAllRequestsAsync()
+        {
+            return await _context.Requests
+                .Include(r => r.Booking)
+                    .ThenInclude(b => b.Vehicle)
+                .Include(r => r.RequestParts)
+                    .ThenInclude(rp => rp.Part)
+                .OrderByDescending(r => r.RequestedDate)
+                .ToListAsync();
+        }
+
+        public async Task<bool> HasPendingRequestsForBookingAsync(int bookingId)
+        {
+            return await _context.Requests
+                .AnyAsync(r => r.BookingId == bookingId && r.RequestStatusId == 1);
+        }
+
         public async Task<Request?> GetByBookingIdAsync(int bookingId)
         {
             return await _context.Requests

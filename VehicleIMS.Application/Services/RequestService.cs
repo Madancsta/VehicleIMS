@@ -1,6 +1,7 @@
 ﻿using VehicleIMS.Application.DTOs;
 using VehicleIMS.Application.Interfaces;
 using VehicleIMS.Domain.Entities;
+using VehicleIMS.Domain.Enums;
 
 namespace VehicleIMS.Application.Services;
 
@@ -95,6 +96,84 @@ public class RequestService : IRequestService
             r.RequestStatusId,
             r.RequestedDate,
             VehicleId = r.Booking.VehicleId,
+            VehicleName = $"{r.Booking.Vehicle.Brand} {r.Booking.Vehicle.Model}",
+            Parts = r.RequestParts.Select(rp => new
+            {
+                rp.PartId,
+                rp.Part.PartName,
+                rp.RequestQuantity,
+                rp.RequestDescription
+            })
+        }).Cast<object>().ToList();
+    }
+
+    public async Task<object> ApprovePartRequestAsync(int requestId)
+    {
+        var request = await _requestRepository.GetRequestByIdAsync(requestId);
+
+        if (request == null)
+        {
+            throw new Exception("Part request not found.");
+        }
+
+        request.RequestStatusId = 2; // Approved
+
+        await _requestRepository.SaveChangesAsync();
+
+        return new
+        {
+            Message = "Part request approved and booking completed successfully.",
+            request.RequestId,
+            request.BookingId,
+            request.RequestStatusId,
+            BookingStatus = request.Booking.BookingStatus.ToString()
+        };
+    }
+
+    public async Task<object> RejectPartRequestAsync(int requestId)
+    {
+        var request = await _requestRepository.GetRequestByIdAsync(requestId);
+
+        if (request == null)
+        {
+            throw new Exception("Part request not found.");
+        }
+
+        if (request.RequestStatusId == 3)
+        {
+            return new
+            {
+                Message = "Part request is already rejected.",
+                request.RequestId,
+                request.BookingId,
+                request.RequestStatusId
+            };
+        }
+
+        request.RequestStatusId = 3; // Rejected
+
+        await _requestRepository.SaveChangesAsync();
+
+        return new
+        {
+            Message = "Part request rejected successfully.",
+            request.RequestId,
+            request.BookingId,
+            request.RequestStatusId
+        };
+    }
+
+    public async Task<List<object>> GetAllRequestsAsync()
+    {
+        var requests = await _requestRepository.GetAllRequestsAsync();
+
+        return requests.Select(r => new
+        {
+            r.RequestId,
+            r.BookingId,
+            r.RequestStatusId,
+            r.RequestedDate,
+            BookingStatus = r.Booking.BookingStatus.ToString(),
             VehicleName = $"{r.Booking.Vehicle.Brand} {r.Booking.Vehicle.Model}",
             Parts = r.RequestParts.Select(rp => new
             {

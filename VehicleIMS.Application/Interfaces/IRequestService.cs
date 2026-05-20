@@ -10,6 +10,8 @@ namespace VehicleIMS.Application.Interfaces
         Task<object> CreatePartRequestAsync(PartRequestDTO dto);
         Task<List<object>> GetRequestsByBookingAsync(int bookingId);
         Task<List<object>> GetRequestsByCustomerAsync(int customerId);
-
+        Task<object> ApprovePartRequestAsync(int requestId);
+        Task<object> RejectPartRequestAsync(int requestId);
+        Task<List<object>> GetAllRequestsAsync();
     }
 }
