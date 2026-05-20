@@ -22,45 +22,24 @@ namespace VehicleIMS.Controllers
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> GetAllBookings()
         {
-            try
-            {
-                var bookings = await _bookingService.GetAllBookingsAsync();
-                return Ok(bookings);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = $"Error retrieving bookings: {ex.Message}" });
-            }
+            var bookings = await _bookingService.GetAllBookingsAsync();
+            return Ok(bookings);
         }
 
         // Get bookings made by a specific customer
         [HttpGet("customer/{customerId:int}")]
         public async Task<IActionResult> GetBookingsByCustomer(int customerId)
         {
-            try
-            {
-                var bookings = await _bookingService.GetBookingsByCustomerAsync(customerId);
-                return Ok(bookings);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = $"Error retrieving customer bookings: {ex.Message}" });
-            }
+            var bookings = await _bookingService.GetBookingsByCustomerAsync(customerId);
+            return Ok(bookings);
         }
 
         // Create a new booking
         [HttpPost]
         public async Task<IActionResult> CreateBooking(BookingDTO dto)
         {
-            try
-            {
-                var result = await _bookingService.CreateBookingAsync(dto);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var result = await _bookingService.CreateBookingAsync(dto);
+            return Ok(result);
         }
 
         // Get bookings for a specific vehicle
@@ -74,22 +53,14 @@ namespace VehicleIMS.Controllers
         [HttpGet("{bookingId}/details")]
         public async Task<IActionResult> GetBookingDetails(int bookingId)
         {
-            try
-            {
-                var booking = await _bookingService.GetBookingDetailsAsync(bookingId);
+            var booking = await _bookingService.GetBookingDetailsAsync(bookingId);
 
-                if (booking == null)
-                {
-                    return NotFound(new { message = $"Booking with ID {bookingId} was not found." });
-                }
-
-                return Ok(booking);
-            }
-            catch (Exception ex)
+            if (booking == null)
             {
-                return StatusCode(500, new { message = $"Error retrieving booking details: {ex.Message}" });
+                return NotFound(new { message = $"Booking with ID {bookingId} was not found." });
             }
+
+            return Ok(booking);
         }
-
     }
 }

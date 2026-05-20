@@ -20,21 +20,21 @@ public class RequestService : IRequestService
 
         if (!bookingExists)
         {
-            throw new Exception("Booking not found.");
+            throw new KeyNotFoundException("Booking not found.");
         }
 
         var bookingIsCompleted = await _requestRepository.BookingIsCompletedAsync(dto.BookingId);
 
         if (bookingIsCompleted)
         {
-            throw new Exception("Cannot submit part request for a completed booking.");
+            throw new ArgumentException("Cannot submit part request for a completed booking.");
         }
 
         var partExists = await _requestRepository.PartExistsAsync(dto.PartId);
 
         if (!partExists)
         {
-            throw new Exception("Part not found.");
+            throw new KeyNotFoundException("Part not found.");
         }
 
         var request = new Request
@@ -113,7 +113,7 @@ public class RequestService : IRequestService
 
         if (request == null)
         {
-            throw new Exception("Part request not found.");
+            throw new KeyNotFoundException("Part request not found.");
         }
 
         request.RequestStatusId = 2; // Approved
@@ -136,7 +136,7 @@ public class RequestService : IRequestService
 
         if (request == null)
         {
-            throw new Exception("Part request not found.");
+            throw new KeyNotFoundException("Part request not found.");
         }
 
         if (request.RequestStatusId == 3)

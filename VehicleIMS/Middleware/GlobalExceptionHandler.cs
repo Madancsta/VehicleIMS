@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
 
 namespace VehicleIMS.Infrastructure.Middleware
@@ -6,10 +8,12 @@ namespace VehicleIMS.Infrastructure.Middleware
     public class GlobalExceptionHandler
     {
         private readonly RequestDelegate _next;
+        private readonly ILogger<GlobalExceptionHandler> _logger;
 
-        public GlobalExceptionHandler(RequestDelegate next)
+        public GlobalExceptionHandler(RequestDelegate next, ILogger<GlobalExceptionHandler> logger)
         {
             _next = next;
+            _logger = logger;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -20,6 +24,18 @@ namespace VehicleIMS.Infrastructure.Middleware
             }
             catch (Exception ex)
             {
+                if (context.Response.HasStarted)
+                {
+                    _logger.LogError(ex, "Unhandled exception after the response started.");
+                    throw;
+                }
+
+                _logger.LogError(
+                    ex,
+                    "Unhandled exception while processing {Method} {Path}",
+                    context.Request.Method,
+                    context.Request.Path);
+
                 await HandleExceptionAsync(context, ex);
             }
         }
@@ -32,7 +48,9 @@ namespace VehicleIMS.Infrastructure.Middleware
             {
                 ArgumentException => StatusCodes.Status400BadRequest,
                 UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
+                SecurityTokenException => StatusCodes.Status401Unauthorized,
                 KeyNotFoundException => StatusCodes.Status404NotFound,
+                JsonException => StatusCodes.Status400BadRequest,
                 _ => StatusCodes.Status500InternalServerError
             };
 
@@ -40,8 +58,9 @@ namespace VehicleIMS.Infrastructure.Middleware
 
             var response = new
             {
-                Message = ex.Message,
-                StatusCode = statusCode
+                statusCode,
+                message = ex.Message,
+                traceId = context.TraceIdentifier
             };
 
             await context.Response.WriteAsJsonAsync(response);

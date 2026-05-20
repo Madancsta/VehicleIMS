@@ -57,22 +57,15 @@ namespace VehicleIMS.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateReview(ReviewDTO dto)
         {
-            try
-            {
-                var customerId = await GetCurrentCustomerIdAsync();
+            var customerId = await GetCurrentCustomerIdAsync();
 
-                if (customerId == null)
-                {
-                    return Forbid();
-                }
-
-                var result = await _reviewService.CreateReviewAsync(dto, customerId.Value);
-                return Ok(result);
-            }
-            catch (Exception ex)
+            if (customerId == null)
             {
-                return BadRequest(ex.Message);
+                return Forbid();
             }
+
+            var result = await _reviewService.CreateReviewAsync(dto, customerId.Value);
+            return Ok(result);
         }
 
         // Get reviews for a specific sale

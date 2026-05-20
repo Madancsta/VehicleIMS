@@ -1,9 +1,6 @@
-﻿// ServiceController.cs
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using VehicleIMS.Application.DTOs;
 using VehicleIMS.Application.Interfaces;
-using VehicleIMS.Domain.Enums;
 
 namespace VehicleIMS.Controllers
 {
@@ -24,15 +21,8 @@ namespace VehicleIMS.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetAllServices()
         {
-            try
-            {
-                var services = await _serviceService.GetAllServicesAsync();
-                return Ok(services);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = $"Error retrieving services: {ex.Message}" });
-            }
+            var services = await _serviceService.GetAllServicesAsync();
+            return Ok(services);
         }
     }
 }

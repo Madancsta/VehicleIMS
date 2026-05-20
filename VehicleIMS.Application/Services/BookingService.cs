@@ -46,7 +46,7 @@ namespace VehicleIMS.Application.Services
 
             if (!vehicleExists)
             {
-                throw new Exception("Vehicle not found.");
+                throw new KeyNotFoundException("Vehicle not found.");
             }
 
             var booking = new Booking

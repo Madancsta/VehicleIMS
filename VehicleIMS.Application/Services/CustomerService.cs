@@ -61,14 +61,14 @@ public class CustomerService : ICustomerService
 
         if (existingUser != null)
         {
-            throw new Exception("Email already exists.");
+            throw new ArgumentException("Email already exists.");
         }
 
         var existingUsername = await _userManager.FindByNameAsync(dto.UserName);
 
         if (existingUsername != null)
         {
-            throw new Exception("Username already exists.");
+            throw new ArgumentException("Username already exists.");
         }
 
         var user = new Users
@@ -88,7 +88,7 @@ public class CustomerService : ICustomerService
 
         if (!result.Succeeded)
         {
-            throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+            throw new ArgumentException(string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
         try

@@ -64,7 +64,7 @@ public class SalesService : ISalesService
                 ?? throw new KeyNotFoundException($"Vehicle {dto.VehicleId} not found.");
 
             if (vehicle.CustomerId != dto.CustomerId)
-                throw new InvalidOperationException("Vehicle does not belong to this customer.");
+                throw new ArgumentException("Vehicle does not belong to this customer.");
         }
 
         // Validate Booking if provided
@@ -80,7 +80,7 @@ public class SalesService : ISalesService
 
         // Must have at least items OR a service
         if (dto.Items.Count == 0 && service == null)
-            throw new InvalidOperationException("A sale must contain at least one part item or a service.");
+            throw new ArgumentException("A sale must contain at least one part item or a service.");
 
         // Build line items and calculate parts total
         var salesItems = new List<SalesItem>();
@@ -92,7 +92,7 @@ public class SalesService : ISalesService
                 ?? throw new KeyNotFoundException($"Part {itemDto.PartId} not found.");
 
             if (part.StockQuantity < itemDto.Quantity)
-                throw new InvalidOperationException(
+                throw new ArgumentException(
                     $"Insufficient stock for '{part.PartName}'. Available: {part.StockQuantity}.");
 
             // Deduct stock and update timestamp
@@ -182,7 +182,7 @@ public class SalesService : ISalesService
 
             if (hasPendingRequests)
             {
-                throw new InvalidOperationException(
+                throw new ArgumentException(
                     "Cannot complete booking because there are pending part requests."
                 );
             }
@@ -285,7 +285,7 @@ public class SalesService : ISalesService
         {
             // Ensure payment method is "credit" (original assumption)
             if (!sale.PaymentMethod.Equals("credit", StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("Only credit sales can be moved from Pending to Completed.");
+                throw new ArgumentException("Only credit sales can be moved from Pending to Completed.");
 
             // Update customer financials
             var customer = await _customerRepo.GetByIdAsync(sale.CustomerId)
@@ -309,7 +309,7 @@ public class SalesService : ISalesService
         }
         else
         {
-            throw new InvalidOperationException($"Cannot change payment status from {sale.PaymentStatus} to {dto.PaymentStatus}.");
+            throw new ArgumentException($"Cannot change payment status from {sale.PaymentStatus} to {dto.PaymentStatus}.");
         }
 
         // 3. Update sale fields

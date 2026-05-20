@@ -24,26 +24,12 @@ public class SalesController : ControllerBase
     public async Task<IActionResult> CreateSale([FromBody] CreateSalesDTO dto)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
-        try
-        {
-            var result = await _salesService.CreateSaleAsync(dto);
-            return CreatedAtAction(nameof(GetSaleById), new { id = result.SalesId }, result);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { success = false, message = ex.Message });
-        }
-        catch (InvalidOperationException ex)
-        {
-            // 
-            return BadRequest(new { success = false, message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { success = false, message = "An error occurred while creating the sale.", error = ex.Message });
-        }
+        var result = await _salesService.CreateSaleAsync(dto);
+        return CreatedAtAction(nameof(GetSaleById), new { id = result.SalesId }, result);
     }
 
     // ── GET api/sales ─────────────────────────────────────────────────────────
@@ -61,7 +47,9 @@ public class SalesController : ControllerBase
     {
         var sale = await _salesService.GetSaleByIdAsync(id);
         if (sale is null)
+        {
             return NotFound(new { message = $"Sale {id} not found." });
+        }
 
         return Ok(sale);
     }
@@ -72,7 +60,9 @@ public class SalesController : ControllerBase
     {
         var invoice = await _salesService.GetInvoiceSummaryAsync(id);
         if (invoice is null)
+        {
             return NotFound(new { message = $"Sale {id} not found." });
+        }
 
         return Ok(invoice);
     }
@@ -90,15 +80,21 @@ public class SalesController : ControllerBase
     public async Task<IActionResult> SendInvoiceEmail(int id, [FromBody] EmailInvoiceDTO dto)
     {
         if (dto.SalesId != id)
+        {
             return BadRequest(new { message = "Route id and body SalesId must match." });
+        }
 
         var invoice = await _salesService.GetInvoiceSummaryAsync(id);
         if (invoice is null)
+        {
             return NotFound(new { message = $"Sale {id} not found." });
+        }
 
         var recipient = dto.RecipientEmail ?? invoice.CustomerEmail;
         if (string.IsNullOrWhiteSpace(recipient))
+        {
             return BadRequest(new { message = "No email address available for this customer." });
+        }
 
         await _emailService.SendInvoiceEmailAsync(invoice, recipient);
 
@@ -109,20 +105,11 @@ public class SalesController : ControllerBase
     public async Task<IActionResult> UpdateSaleStatus(int id, [FromBody] UpdateSalesStatusDTO dto)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
-        try
-        {
-            var updatedSale = await _salesService.UpdateSalePaymentStatusAsync(id, dto);
-            return Ok(updatedSale);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var updatedSale = await _salesService.UpdateSalePaymentStatusAsync(id, dto);
+        return Ok(updatedSale);
     }
 }

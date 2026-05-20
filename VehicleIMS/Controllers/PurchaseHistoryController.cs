@@ -162,9 +162,7 @@ public class PurchaseHistoryController : ControllerBase
     [Authorize(Roles = "Admin,Staff")]
     public async Task<IActionResult> GetCustomerPurchaseHistory(int customerId)
     {
-        try
-        {
-            // Verify customer exists
+        // Verify customer exists
             var customer = await _context.Customers
                 .Include(c => c.User)
                 .FirstOrDefaultAsync(c => c.CustomerId == customerId);
@@ -216,9 +214,4 @@ public class PurchaseHistoryController : ControllerBase
 
             return Ok(result);
         }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = $"Error retrieving customer purchase history: {ex.Message}" });
-        }
     }
-}

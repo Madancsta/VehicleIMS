@@ -21,15 +21,8 @@ public class RequestController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreatePartRequest(PartRequestDTO dto)
     {
-        try
-        {
-            var result = await _requestService.CreatePartRequestAsync(dto);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _requestService.CreatePartRequestAsync(dto);
+        return Ok(result);
     }
 
     // Get part requests related to a specific booking
@@ -60,30 +53,15 @@ public class RequestController : ControllerBase
     [Authorize(Policy = "StaffOrAdmin")]
     public async Task<IActionResult> ApprovePartRequest(int requestId)
     {
-        try
-        {
-            var result = await _requestService.ApprovePartRequestAsync(requestId);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _requestService.ApprovePartRequestAsync(requestId);
+        return Ok(result);
     }
 
     [HttpPut("{requestId}/reject")]
     [Authorize(Policy = "StaffOrAdmin")]
     public async Task<IActionResult> RejectPartRequest(int requestId)
     {
-        try
-        {
-            var result = await _requestService.RejectPartRequestAsync(requestId);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _requestService.RejectPartRequestAsync(requestId);
+        return Ok(result);
     }
-
 }

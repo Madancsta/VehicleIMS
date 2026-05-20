@@ -29,7 +29,7 @@ public class VehicleService : IVehicleService
             .FirstOrDefaultAsync();
 
         if (existing is not null)
-            throw new InvalidOperationException($"Vehicle number '{dto.VehicleNumber}' is already registered.");
+            throw new ArgumentException($"Vehicle number '{dto.VehicleNumber}' is already registered.");
 
         var vehicle = new Vehicle
         {

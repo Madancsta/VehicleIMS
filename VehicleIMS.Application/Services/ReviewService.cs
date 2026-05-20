@@ -20,14 +20,14 @@ namespace VehicleIMS.Application.Services
 
             if (!belongsToCustomer)
             {
-                throw new Exception("Sales record not found for this customer.");
+                throw new KeyNotFoundException("Sales record not found for this customer.");
             }
 
             var reviewExists = await _reviewRepository.ReviewExistsForSaleAsync(dto.SalesId);
 
             if (reviewExists)
             {
-                throw new Exception("Review already exists for this sale.");
+                throw new ArgumentException("Review already exists for this sale.");
             }
 
             var review = new Review
