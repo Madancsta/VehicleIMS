@@ -34,10 +34,10 @@ public class SalesService : ISalesService
         _customerRepo = customerRepo;
         _requestRepo = requestRepo;
         _customerRepository = customerRepository;
-        _requestRepository = requestRepository;
         _serviceRepo = serviceRepo;
         _vehicleRepo = vehicleRepo;
         _bookingRepo = bookingRepo;
+        _requestRepository = requestRepository; ;
     }
 
     // ── Create Sale ──────────────────────────────────────────────────────────
@@ -175,8 +175,18 @@ public class SalesService : ISalesService
 
         if (booking != null)
         {
-            // Complete booking
+            var hasPendingRequests =
+                await _requestRepository.HasPendingRequestsForBookingAsync(booking.BookingId);
+
+            if (hasPendingRequests)
+            {
+                throw new InvalidOperationException(
+                    "Cannot complete booking because there are pending part requests."
+                );
+            }
+
             booking.BookingStatus = BookingStatus.Completed;
+
             await _bookingRepo.SaveChangesAsync();
 
             // Complete related request
