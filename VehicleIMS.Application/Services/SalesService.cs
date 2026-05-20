@@ -191,10 +191,9 @@ public class SalesService : ISalesService
 
             await _bookingRepo.SaveChangesAsync();
 
-            // Complete related request
             var request = await _requestRepository.GetByBookingIdAsync(booking.BookingId);
 
-            if (request != null)
+            if (request != null && request.RequestStatusId == 2)
             {
                 request.RequestStatusId = 4;
 
